@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
-import type { StorageType, StorageEntry, GetAllResponse } from "@/shared/types";
-import { createGetAllMessage, createSetValueMessage, createDeleteKeyMessage, createImportMessage } from "@/shared/messages";
+import type { StorageType, StorageEntry } from "@/shared/types";
 import { filterEntries } from "@/lib/filter";
 import styles from "./App.module.css";
 import { StorageToggle } from "./StorageToggle";
@@ -10,6 +9,41 @@ import { ValueEditor } from "./ValueEditor";
 import { ImportExport } from "./ImportExport";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
+
+async function getActiveTabId(): Promise<number | null> {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tab?.id ?? null;
+}
+
+function readStorage(storageType: string): Array<{ key: string; value: string }> {
+  const storage = storageType === "localStorage" ? localStorage : sessionStorage;
+  const entries: Array<{ key: string; value: string }> = [];
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i);
+    if (key !== null) {
+      entries.push({ key, value: storage.getItem(key) ?? "" });
+    }
+  }
+  return entries;
+}
+
+function writeStorage(storageType: string, key: string, value: string): void {
+  const storage = storageType === "localStorage" ? localStorage : sessionStorage;
+  storage.setItem(key, value);
+}
+
+function removeFromStorage(storageType: string, key: string): void {
+  const storage = storageType === "localStorage" ? localStorage : sessionStorage;
+  storage.removeItem(key);
+}
+
+function importToStorage(storageType: string, entries: Record<string, string>, clearFirst: boolean): void {
+  const storage = storageType === "localStorage" ? localStorage : sessionStorage;
+  if (clearFirst) storage.clear();
+  for (const [key, value] of Object.entries(entries)) {
+    storage.setItem(key, value);
+  }
+}
 
 export function App() {
   const [storageType, setStorageType] = useState<StorageType>("localStorage");
@@ -25,23 +59,21 @@ export function App() {
     setLoadState("loading");
     setSelectedKey(null);
     try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab?.id) {
+      const tabId = await getActiveTabId();
+      if (!tabId) {
         setErrorMessage("No active tab found");
         setLoadState("error");
         return;
       }
 
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ["src/content/content.ts"],
+      const results = await chrome.scripting.executeScript({
+        target: { tabId },
+        func: readStorage,
+        args: [type],
       });
 
-      const response: GetAllResponse = await chrome.tabs.sendMessage(
-        tab.id,
-        createGetAllMessage(type),
-      );
-      setEntries(response.entries);
+      const tabEntries = results[0]?.result ?? [];
+      setEntries(tabEntries);
       setLoadState("ready");
     } catch (e) {
       setErrorMessage(e instanceof Error ? e.message : "Failed to load storage");
@@ -59,9 +91,13 @@ export function App() {
 
   const handleSave = useCallback(
     async (key: string, value: string) => {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab?.id) return;
-      await chrome.tabs.sendMessage(tab.id, createSetValueMessage(storageType, key, value));
+      const tabId = await getActiveTabId();
+      if (!tabId) return;
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        func: writeStorage,
+        args: [storageType, key, value],
+      });
       setEntries((prev) =>
         prev.map((e) => (e.key === key ? { ...e, value } : e)),
       );
@@ -71,9 +107,13 @@ export function App() {
 
   const handleDelete = useCallback(
     async (key: string) => {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab?.id) return;
-      await chrome.tabs.sendMessage(tab.id, createDeleteKeyMessage(storageType, key));
+      const tabId = await getActiveTabId();
+      if (!tabId) return;
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        func: removeFromStorage,
+        args: [storageType, key],
+      });
       setEntries((prev) => prev.filter((e) => e.key !== key));
       setSelectedKey(null);
     },
@@ -86,12 +126,13 @@ export function App() {
 
   const handleImport = useCallback(
     async (importEntries: Record<string, string>, clearFirst: boolean) => {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab?.id) return;
-      await chrome.tabs.sendMessage(
-        tab.id,
-        createImportMessage(storageType, importEntries, clearFirst),
-      );
+      const tabId = await getActiveTabId();
+      if (!tabId) return;
+      await chrome.scripting.executeScript({
+        target: { tabId },
+        func: importToStorage,
+        args: [storageType, importEntries, clearFirst],
+      });
       loadEntries(storageType);
     },
     [storageType, loadEntries],
