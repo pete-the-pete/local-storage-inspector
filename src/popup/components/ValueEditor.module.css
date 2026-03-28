@@ -1,0 +1,100 @@
+.editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fafafa;
+}
+
+.keyName {
+  font-weight: 600;
+  font-size: 12px;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toolbarButton {
+  padding: 3px 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.toolbarButton:hover {
+  background: #f0f0f0;
+}
+
+.saveButton {
+  background: #1976d2;
+  color: white;
+  border-color: #1565c0;
+}
+
+.saveButton:hover {
+  background: #1565c0;
+}
+
+.saveButton:disabled {
+  background: #bbb;
+  border-color: #aaa;
+  cursor: not-allowed;
+}
+
+.deleteButton {
+  color: #d32f2f;
+  border-color: #d32f2f;
+}
+
+.deleteButton:hover {
+  background: #ffebee;
+}
+
+.toggleLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #666;
+}
+
+.codemirror {
+  flex: 1;
+  overflow: auto;
+}
+
+.validationError {
+  padding: 4px 10px;
+  background: #ffebee;
+  color: #d32f2f;
+  font-size: 11px;
+  border-top: 1px solid #ffcdd2;
+}
+
+.successFlash {
+  padding: 4px 10px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 11px;
+  border-top: 1px solid #c8e6c9;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: #999;
+  font-size: 13px;
+}
