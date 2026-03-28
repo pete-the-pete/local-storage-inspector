@@ -1,11 +1,12 @@
 import { useState, useCallback } from "react";
 import type { StorageType, StorageEntry, GetAllResponse } from "@/shared/types";
-import { createGetAllMessage } from "@/shared/messages";
+import { createGetAllMessage, createSetValueMessage, createDeleteKeyMessage } from "@/shared/messages";
 import { filterEntries } from "@/lib/filter";
 import styles from "./App.module.css";
 import { StorageToggle } from "./StorageToggle";
 import { SearchBar } from "./SearchBar";
 import { KeyList } from "./KeyList";
+import { ValueEditor } from "./ValueEditor";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
@@ -53,6 +54,33 @@ export function App() {
     [loadEntries],
   );
 
+  const handleSave = useCallback(
+    async (key: string, value: string) => {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) return;
+      await chrome.tabs.sendMessage(tab.id, createSetValueMessage(storageType, key, value));
+      setEntries((prev) =>
+        prev.map((e) => (e.key === key ? { ...e, value } : e)),
+      );
+    },
+    [storageType],
+  );
+
+  const handleDelete = useCallback(
+    async (key: string) => {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) return;
+      await chrome.tabs.sendMessage(tab.id, createDeleteKeyMessage(storageType, key));
+      setEntries((prev) => prev.filter((e) => e.key !== key));
+      setSelectedKey(null);
+    },
+    [storageType],
+  );
+
+  const handleCopy = useCallback(async (value: string) => {
+    await navigator.clipboard.writeText(value);
+  }, []);
+
   const filteredEntries = filterEntries(entries, searchQuery);
 
   const selectedEntry = selectedKey
@@ -81,12 +109,20 @@ export function App() {
               onSelectKey={setSelectedKey}
               onAddNew={() => setSelectedKey(null)}
             />
-            <div style={{ flex: 1, padding: 12 }}>
-              {selectedEntry
-                ? <span>Editor for: {selectedEntry.key}</span>
-                : <span style={{ color: "#999" }}>Select a key to edit</span>
-              }
-            </div>
+            {selectedEntry ? (
+              <ValueEditor
+                key={selectedEntry.key}
+                storageKey={selectedEntry.key}
+                value={selectedEntry.value}
+                onSave={handleSave}
+                onDelete={handleDelete}
+                onCopy={handleCopy}
+              />
+            ) : (
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#999" }}>
+                Select a key to edit
+              </div>
+            )}
           </>
         )}
       </div>
