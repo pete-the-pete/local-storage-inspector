@@ -5,6 +5,7 @@ import { filterEntries } from "@/lib/filter";
 import styles from "./App.module.css";
 import { StorageToggle } from "./StorageToggle";
 import { SearchBar } from "./SearchBar";
+import { KeyList } from "./KeyList";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
@@ -73,11 +74,20 @@ export function App() {
         {loadState === "loading" && <div className={styles.loading}>Loading...</div>}
         {loadState === "error" && <div className={styles.error}>{errorMessage}</div>}
         {loadState === "ready" && (
-          <div>
-            {filteredEntries.map((entry) => (
-              <div key={entry.key}>{entry.key}</div>
-            ))}
-          </div>
+          <>
+            <KeyList
+              entries={filteredEntries}
+              selectedKey={selectedKey}
+              onSelectKey={setSelectedKey}
+              onAddNew={() => setSelectedKey(null)}
+            />
+            <div style={{ flex: 1, padding: 12 }}>
+              {selectedEntry
+                ? <span>Editor for: {selectedEntry.key}</span>
+                : <span style={{ color: "#999" }}>Select a key to edit</span>
+              }
+            </div>
+          </>
         )}
       </div>
     </div>
