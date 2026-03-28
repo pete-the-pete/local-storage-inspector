@@ -1,0 +1,17 @@
+.search {
+  flex: 1;
+}
+
+.input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #1976d2;
+}

@@ -3,6 +3,8 @@ import type { StorageType, StorageEntry, GetAllResponse } from "@/shared/types";
 import { createGetAllMessage } from "@/shared/messages";
 import { filterEntries } from "@/lib/filter";
 import styles from "./App.module.css";
+import { StorageToggle } from "./StorageToggle";
+import { SearchBar } from "./SearchBar";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
@@ -64,8 +66,8 @@ export function App() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        {/* StorageToggle and SearchBar will go here */}
-        <span>Storage: {storageType}</span>
+        <StorageToggle storageType={storageType} onChange={handleStorageTypeChange} />
+        <SearchBar query={searchQuery} onChange={setSearchQuery} />
       </div>
       <div className={styles.body}>
         {loadState === "loading" && <div className={styles.loading}>Loading...</div>}
