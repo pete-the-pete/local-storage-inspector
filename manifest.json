@@ -8,5 +8,8 @@
     "default_popup": "src/popup/popup.html",
     "default_title": "Local Storage Inspector"
   },
-  "icons": {}
+  "icons": {},
+  "background": {
+    "service_worker": "src/background/service-worker.ts"
+  }
 }
