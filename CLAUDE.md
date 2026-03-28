@@ -1,111 +1,58 @@
----
-description: Use Bun instead of Node.js, npm, pnpm, or vite.
-globs: "*.ts, *.tsx, *.html, *.css, *.js, *.jsx, package.json"
-alwaysApply: false
----
+# Local Storage Inspector
 
-Default to using Bun instead of Node.js.
+Chrome extension (Manifest V3) for viewing/editing localStorage and sessionStorage.
 
-- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
-- Use `bun test` instead of `jest` or `vitest`
-- Use `bun build <file.html|file.ts|file.css>` instead of `webpack` or `esbuild`
-- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
-- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
-- Use `bunx <package> <command>` instead of `npx <package> <command>`
-- Bun automatically loads .env, so don't use dotenv.
+## Git Workflow
 
-## APIs
+- **Never commit directly to `main`.** Always create a feature branch and open a PR.
+- Branch naming: `issue-{N}-{short-description}` (e.g., `issue-10-value-editor`)
+- PR body must include `Closes #{N}` to auto-close the linked issue on merge.
+- PRs require the `lint-test-build` CI check to pass before merging.
 
-- `Bun.serve()` supports WebSockets, HTTPS, and routes. Don't use `express`.
-- `bun:sqlite` for SQLite. Don't use `better-sqlite3`.
-- `Bun.redis` for Redis. Don't use `ioredis`.
-- `Bun.sql` for Postgres. Don't use `pg` or `postgres.js`.
-- `WebSocket` is built-in. Don't use `ws`.
-- Prefer `Bun.file` over `node:fs`'s readFile/writeFile
-- Bun.$`ls` instead of execa.
+## Before Pushing
 
-## Testing
+Always run these locally before pushing a branch:
 
-Use `bun test` to run tests.
-
-```ts#index.test.ts
-import { test, expect } from "bun:test";
-
-test("hello world", () => {
-  expect(1).toBe(1);
-});
+```bash
+bun run lint
+bun run test
+bun run build
 ```
 
-## Frontend
+Fix any failures before pushing. Do not push broken code.
 
-Use HTML imports with `Bun.serve()`. Don't use `vite`. HTML imports fully support React, CSS, Tailwind.
+## Code Style
 
-Server:
+- TypeScript strict mode — no `any`, no non-null assertions (`!`)
+- Pure functions for all business logic — live in `src/lib/`, not in React components
+- React components are thin wiring — they receive data via props, call pure functions, update state
+- Minimal hooks/effects — explicit control flow, no scattered `useEffect` chains
+- CSS Modules for styling — no inline styles except trivial layout
+- One file per component, one concern per file
 
-```ts#index.ts
-import index from "./index.html"
+## Commands
 
-Bun.serve({
-  routes: {
-    "/": index,
-    "/api/users/:id": {
-      GET: (req) => {
-        return new Response(JSON.stringify({ id: req.params.id }));
-      },
-    },
-  },
-  // optional websocket support
-  websocket: {
-    open: (ws) => {
-      ws.send("Hello, world!");
-    },
-    message: (ws, message) => {
-      ws.send(message);
-    },
-    close: (ws) => {
-      // handle close
-    }
-  },
-  development: {
-    hmr: true,
-    console: true,
-  }
-})
-```
+- `bun run dev` — Vite dev server with HMR
+- `bun run build` — TypeScript check + Vite production build
+- `bun run test` — Vitest unit tests
+- `bun run test:e2e` — Playwright E2E tests
+- `bun run lint` — ESLint
+- `bun run format` — Prettier
 
-HTML files can import .tsx, .jsx or .js files directly and Bun's bundler will transpile & bundle automatically. `<link>` tags can point to stylesheets and Bun's CSS bundler will bundle.
+## Project Structure
 
-```html#index.html
-<html>
-  <body>
-    <h1>Hello, world!</h1>
-    <script type="module" src="./frontend.tsx"></script>
-  </body>
-</html>
-```
+- `src/lib/` — pure functions (parse, validate, filter, serialization)
+- `src/shared/` — TypeScript types and message creators shared between popup and content script
+- `src/popup/components/` — React components
+- `src/content/` — content script (injected into active tab)
+- `src/background/` — service worker
+- `tests/unit/` — Vitest unit tests
+- `tests/e2e/` — Playwright E2E tests
 
-With the following `frontend.tsx`:
+## Tech Stack
 
-```tsx#frontend.tsx
-import React from "react";
-import { createRoot } from "react-dom/client";
-
-// import .css files directly and it works
-import './index.css';
-
-const root = createRoot(document.body);
-
-export default function Frontend() {
-  return <h1>Hello, world!</h1>;
-}
-
-root.render(<Frontend />);
-```
-
-Then, run index.ts
-
-```sh
-bun --hot ./index.ts
-```
-
-For more information, read the Bun API docs in `node_modules/bun-types/docs/**.mdx`.
+- Bun (package manager + script runner)
+- TypeScript, React 19, Vite + @crxjs/vite-plugin
+- CodeMirror 6 for JSON editing
+- Vitest (unit), Playwright (E2E)
+- ESLint + Prettier
