@@ -1,8 +1,5 @@
 import { createRoot } from "react-dom/client";
-
-function App() {
-  return <div>Local Storage Inspector</div>;
-}
+import { App } from "./components/App";
 
 const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
