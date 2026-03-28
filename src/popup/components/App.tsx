@@ -97,6 +97,17 @@ export function App() {
     [storageType, loadEntries],
   );
 
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setSelectedKey(null);
+      setAddingNew(false);
+    }
+  }, []);
+
+  if (typeof window !== "undefined") {
+    window.addEventListener("keydown", handleKeyDown);
+  }
+
   const filteredEntries = filterEntries(entries, searchQuery);
 
   const selectedEntry = selectedKey
