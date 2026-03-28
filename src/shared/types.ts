@@ -1,0 +1,56 @@
+export type StorageType = "localStorage" | "sessionStorage";
+
+export interface StorageEntry {
+  key: string;
+  value: string;
+}
+
+export interface GetAllMessage {
+  type: "GET_ALL";
+  storageType: StorageType;
+}
+
+export interface SetValueMessage {
+  type: "SET_VALUE";
+  storageType: StorageType;
+  key: string;
+  value: string;
+}
+
+export interface DeleteKeyMessage {
+  type: "DELETE_KEY";
+  storageType: StorageType;
+  key: string;
+}
+
+export interface ImportMessage {
+  type: "IMPORT";
+  storageType: StorageType;
+  entries: Record<string, string>;
+  clearFirst: boolean;
+}
+
+export type StorageMessage = GetAllMessage | SetValueMessage | DeleteKeyMessage | ImportMessage;
+
+export interface GetAllResponse {
+  type: "GET_ALL_RESPONSE";
+  entries: StorageEntry[];
+}
+
+export interface SetValueResponse {
+  type: "SET_VALUE_RESPONSE";
+  success: boolean;
+}
+
+export interface DeleteKeyResponse {
+  type: "DELETE_KEY_RESPONSE";
+  success: boolean;
+}
+
+export interface ImportResponse {
+  type: "IMPORT_RESPONSE";
+  success: boolean;
+  count: number;
+}
+
+export type StorageResponse = GetAllResponse | SetValueResponse | DeleteKeyResponse | ImportResponse;
