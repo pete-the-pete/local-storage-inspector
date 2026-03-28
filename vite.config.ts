@@ -10,6 +10,11 @@ export default defineConfig({
     alias: {
       "@": resolve(__dirname, "src"),
     },
+    dedupe: [
+      "@codemirror/state",
+      "@codemirror/view",
+      "@codemirror/language",
+    ],
   },
   test: {
     globals: false,
