@@ -1,0 +1,89 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-top: 1px solid #e0e0e0;
+  background: #fafafa;
+}
+
+.button {
+  padding: 3px 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.button:hover {
+  background: #f0f0f0;
+}
+
+.fileInput {
+  display: none;
+}
+
+.preview {
+  padding: 8px 12px;
+  background: #fff3e0;
+  border-top: 1px solid #ffe0b2;
+  font-size: 11px;
+}
+
+.previewTitle {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.previewKeys {
+  max-height: 80px;
+  overflow-y: auto;
+  margin: 4px 0;
+}
+
+.previewKey {
+  padding: 1px 0;
+  color: #555;
+}
+
+.overwrite {
+  color: #e65100;
+}
+
+.previewActions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.confirmButton {
+  padding: 3px 8px;
+  border: 1px solid #e65100;
+  border-radius: 3px;
+  background: #e65100;
+  color: white;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.confirmButton:hover {
+  background: #bf360c;
+}
+
+.cancelButton {
+  padding: 3px 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.error {
+  padding: 4px 10px;
+  background: #ffebee;
+  color: #d32f2f;
+  font-size: 11px;
+  border-top: 1px solid #ffcdd2;
+}

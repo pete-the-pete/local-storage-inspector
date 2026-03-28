@@ -1,12 +1,13 @@
 import { useState, useCallback } from "react";
 import type { StorageType, StorageEntry, GetAllResponse } from "@/shared/types";
-import { createGetAllMessage, createSetValueMessage, createDeleteKeyMessage } from "@/shared/messages";
+import { createGetAllMessage, createSetValueMessage, createDeleteKeyMessage, createImportMessage } from "@/shared/messages";
 import { filterEntries } from "@/lib/filter";
 import styles from "./App.module.css";
 import { StorageToggle } from "./StorageToggle";
 import { SearchBar } from "./SearchBar";
 import { KeyList } from "./KeyList";
 import { ValueEditor } from "./ValueEditor";
+import { ImportExport } from "./ImportExport";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
@@ -82,6 +83,19 @@ export function App() {
   const handleCopy = useCallback(async (value: string) => {
     await navigator.clipboard.writeText(value);
   }, []);
+
+  const handleImport = useCallback(
+    async (importEntries: Record<string, string>, clearFirst: boolean) => {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) return;
+      await chrome.tabs.sendMessage(
+        tab.id,
+        createImportMessage(storageType, importEntries, clearFirst),
+      );
+      loadEntries(storageType);
+    },
+    [storageType, loadEntries],
+  );
 
   const filteredEntries = filterEntries(entries, searchQuery);
 
@@ -160,6 +174,9 @@ export function App() {
           </>
         )}
       </div>
+      {loadState === "ready" && (
+        <ImportExport entries={entries} onImport={handleImport} />
+      )}
     </div>
   );
 }
