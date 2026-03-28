@@ -17,6 +17,8 @@ export function App() {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [loadState, setLoadState] = useState<LoadState>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [addingNew, setAddingNew] = useState(false);
+  const [newKeyName, setNewKeyName] = useState("");
 
   const loadEntries = useCallback(async (type: StorageType) => {
     setLoadState("loading");
@@ -106,8 +108,12 @@ export function App() {
             <KeyList
               entries={filteredEntries}
               selectedKey={selectedKey}
-              onSelectKey={setSelectedKey}
-              onAddNew={() => setSelectedKey(null)}
+              onSelectKey={(key) => { setSelectedKey(key); setAddingNew(false); }}
+              onAddNew={() => {
+                setSelectedKey(null);
+                setAddingNew(true);
+                setNewKeyName("");
+              }}
             />
             {selectedEntry ? (
               <ValueEditor
@@ -118,6 +124,34 @@ export function App() {
                 onDelete={handleDelete}
                 onCopy={handleCopy}
               />
+            ) : addingNew ? (
+              <div style={{ flex: 1, padding: 12 }}>
+                <div style={{ marginBottom: 8 }}>
+                  <label style={{ fontSize: 12, fontWeight: 600 }}>Key name:</label>
+                  <input
+                    style={{ width: "100%", padding: "4px 8px", marginTop: 4, boxSizing: "border-box", border: "1px solid #ccc", borderRadius: 4, fontSize: 12 }}
+                    value={newKeyName}
+                    onChange={(e) => setNewKeyName(e.target.value)}
+                    placeholder="Enter key name"
+                    autoFocus
+                  />
+                </div>
+                {newKeyName && (
+                  <ValueEditor
+                    key={`new-${newKeyName}`}
+                    storageKey={newKeyName}
+                    value=""
+                    onSave={(key, value) => {
+                      handleSave(key, value);
+                      setAddingNew(false);
+                      setSelectedKey(key);
+                      loadEntries(storageType);
+                    }}
+                    onDelete={() => setAddingNew(false)}
+                    onCopy={handleCopy}
+                  />
+                )}
+              </div>
             ) : (
               <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#999" }}>
                 Select a key to edit
