@@ -1,14 +1,12 @@
-import { defineConfig } from "playwright/test";
-
+import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
+  globalSetup: "./tests/e2e/global-setup.cts",
   testDir: "tests/e2e",
   timeout: 30000,
   projects: [
     {
       name: "chromium",
-      use: {
-        browserName: "chromium",
-      },
+      use: { ...devices["Desktop Chrome"] },
     },
   ],
 });
