@@ -24,10 +24,13 @@
 
   function postChange(detail) {
     window.postMessage({
-      source: "lsi-interceptor",
+      _lsi: "interceptor",
       ...detail,
     }, "*");
   }
+
+  // Only patch once — guard against re-injection
+  if (window[ORIGINAL_SET_ITEM]) return;
 
   // Store originals (preserving any prior patches by other extensions)
   window[ORIGINAL_SET_ITEM] = Storage.prototype.setItem;
@@ -92,9 +95,9 @@
 
   // Listen for extension flag setting from monitor (via postMessage from ISOLATED world)
   window.addEventListener("message", function (event) {
-    if (event.data && event.data.source === "lsi-monitor" && event.data.type === "SET_EXTENSION_FLAG") {
+    if (event.data && event.data._lsi === "monitor" && event.data.type === "SET_EXTENSION_FLAG") {
       window[EXTENSION_FLAG] = true;
-      window.postMessage({ source: "lsi-interceptor", type: "EXTENSION_FLAG_SET" }, "*");
+      window.postMessage({ _lsi: "interceptor", type: "EXTENSION_FLAG_SET" }, "*");
     }
   });
 })();

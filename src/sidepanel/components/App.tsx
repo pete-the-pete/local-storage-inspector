@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
-import type { StorageType, StorageEntry } from "@/shared/types";
+import { useState, useCallback, useRef, useEffect } from "react";
+import type { StorageType, StorageEntry, StorageChangeEvent, StorageChangePortMessage } from "@/shared/types";
+
 import { filterEntries } from "@/lib/filter";
 import styles from "./App.module.css";
 import { StorageToggle } from "./StorageToggle";
@@ -7,6 +8,7 @@ import { SearchBar } from "./SearchBar";
 import { KeyList } from "./KeyList";
 import { ValueEditor } from "./ValueEditor";
 import { ImportExport } from "./ImportExport";
+import { ChangeLog } from "./ChangeLog";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
@@ -54,6 +56,64 @@ export function App() {
   const [errorMessage, setErrorMessage] = useState("");
   const [addingNew, setAddingNew] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
+  const [recording, setRecording] = useState(true);
+  const [changes, setChanges] = useState<StorageChangeEvent[]>([]);
+  const [truncatedCount, setTruncatedCount] = useState(0);
+  const recordingRef = useRef(true);
+
+  const MAX_CHANGES = 100;
+
+  const addChanges = useCallback((newChanges: StorageChangeEvent[]) => {
+    setChanges((prev) => {
+      const combined = [...newChanges.reverse(), ...prev];
+      if (combined.length > MAX_CHANGES) {
+        const overflow = combined.length - MAX_CHANGES;
+        setTruncatedCount((t) => t + overflow);
+        return combined.slice(0, MAX_CHANGES);
+      }
+      return combined;
+    });
+  }, []);
+
+  // Start/stop recording by messaging the content script
+  const sendRecordingMessage = useCallback(async (start: boolean) => {
+    const tabId = await getActiveTabId();
+    if (!tabId) return;
+    try {
+      await chrome.tabs.sendMessage(tabId, { type: start ? "START_RECORDING" : "STOP_RECORDING" });
+    } catch {
+      // Content script may not be ready yet
+    }
+  }, []);
+
+  // Listen for change events from the content script via runtime messages
+  useEffect(() => {
+    const handleMessage = (message: StorageChangePortMessage) => {
+      if (message.type === "STORAGE_CHANGE" && recordingRef.current) {
+        addChanges(message.changes);
+      }
+    };
+
+    chrome.runtime.onMessage.addListener(handleMessage);
+    return () => chrome.runtime.onMessage.removeListener(handleMessage);
+  }, [addChanges]);
+
+  // Start recording on initial load
+  useEffect(() => {
+    sendRecordingMessage(true);
+  }, [sendRecordingMessage]);
+
+  const handleToggleRecording = useCallback(() => {
+    const newRecording = !recordingRef.current;
+    recordingRef.current = newRecording;
+    setRecording(newRecording);
+    sendRecordingMessage(newRecording);
+  }, [sendRecordingMessage]);
+
+  const handleClearChanges = useCallback(() => {
+    setChanges([]);
+    setTruncatedCount(0);
+  }, []);
 
   const loadEntries = useCallback(async (type: StorageType) => {
     setLoadState("loading");
@@ -229,6 +289,13 @@ export function App() {
       {loadState === "ready" && (
         <ImportExport entries={entries} onImport={handleImport} />
       )}
+      <ChangeLog
+        changes={changes}
+        recording={recording}
+        truncatedCount={truncatedCount}
+        onToggleRecording={handleToggleRecording}
+        onClear={handleClearChanges}
+      />
     </div>
   );
 }
