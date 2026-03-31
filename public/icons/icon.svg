@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Square bracket left -->
+  <path d="M 8 3 H 4 V 29 H 8" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Square bracket right -->
+  <path d="M 24 3 H 28 V 29 H 24" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Magnifying glass -->
+  <circle cx="15" cy="14" r="7" stroke="#1E3A5F" stroke-width="2.5" />
+  <line x1="19.9" y1="19.2" x2="24.5" y2="24.5" stroke="#1E3A5F" stroke-width="3" stroke-linecap="round" />
+  <!-- Data lines inside lens -->
+  <line x1="11" y1="11.5" x2="19" y2="11.5" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round" />
+  <line x1="11" y1="14.5" x2="17" y2="14.5" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round" />
+  <line x1="11" y1="17.5" x2="18" y2="17.5" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round" />
+</svg>
