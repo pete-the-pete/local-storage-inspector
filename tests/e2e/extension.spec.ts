@@ -221,6 +221,40 @@ test.describe("Editing and Saving", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Syntax Highlighting
+// ---------------------------------------------------------------------------
+
+test.describe("Syntax Highlighting", () => {
+  test("JSON values render with One Dark theme", async ({ page, openPopup }) => {
+    const popupPage = await openPopup(page);
+
+    await popupPage.locator("text=complex-json").click();
+    await popupPage.waitForSelector(".cm-editor");
+
+    const hasDarkTheme = await popupPage.locator(".cm-editor").evaluate((el) =>
+      getComputedStyle(el).backgroundColor === "rgb(40, 44, 52)",
+    );
+    expect(hasDarkTheme).toBe(true);
+
+    await popupPage.close();
+  });
+
+  test("plain text values render without theme", async ({ page, openPopup }) => {
+    const popupPage = await openPopup(page);
+
+    await popupPage.locator("text=basic-test").click();
+    await popupPage.waitForSelector(".cm-editor");
+
+    const hasDarkTheme = await popupPage.locator(".cm-editor").evaluate((el) =>
+      getComputedStyle(el).backgroundColor === "rgb(40, 44, 52)",
+    );
+    expect(hasDarkTheme).toBe(false);
+
+    await popupPage.close();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Search/Filter
 // ---------------------------------------------------------------------------
 

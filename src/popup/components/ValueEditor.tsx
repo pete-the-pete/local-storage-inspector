@@ -3,6 +3,7 @@ import { EditorView, keymap } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { basicSetup } from "@codemirror/basic-setup";
 import { json } from "@codemirror/lang-json";
+import { oneDark } from "@codemirror/theme-one-dark";
 import { parseStorageValue } from "@/lib/parse";
 import { validateJson } from "@/lib/validate";
 import styles from "./ValueEditor.module.css";
@@ -57,7 +58,7 @@ export function ValueEditor({ storageKey, value, onSave, onDelete, onCopy }: Val
       ];
 
       if (jsonMode) {
-        extensions.push(json());
+        extensions.push(json(), oneDark);
       }
 
       const state = EditorState.create({
