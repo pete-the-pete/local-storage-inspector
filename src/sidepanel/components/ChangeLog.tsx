@@ -1,0 +1,109 @@
+import { useState } from "react";
+import type { StorageChangeEvent } from "@/shared/types";
+import styles from "./ChangeLog.module.css";
+
+const MAX_ENTRIES = 100;
+
+interface ChangeLogProps {
+  changes: StorageChangeEvent[];
+  recording: boolean;
+  truncatedCount: number;
+  onToggleRecording: () => void;
+  onClear: () => void;
+}
+
+function formatTimestamp(ts: number): string {
+  const d = new Date(ts);
+  const h = String(d.getHours()).padStart(2, "0");
+  const m = String(d.getMinutes()).padStart(2, "0");
+  const s = String(d.getSeconds()).padStart(2, "0");
+  const ms = String(d.getMilliseconds()).padStart(3, "0");
+  return `${h}:${m}:${s}.${ms}`;
+}
+
+function formatValue(value: string | null): string {
+  if (value === null) return "(null)";
+  try {
+    return JSON.stringify(JSON.parse(value), null, 2);
+  } catch {
+    return value;
+  }
+}
+
+function ChangeEntry({ change }: { change: StorageChangeEvent }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const sourceClass = change.source === "extension"
+    ? `${styles.entrySource} ${styles.entrySourceExtension}`
+    : styles.entrySource;
+
+  return (
+    <div className={styles.entry} onClick={() => setExpanded(!expanded)} data-testid="change-entry">
+      <div className={styles.entryHeader}>
+        <span className={styles.entryKey} title={change.key ?? undefined}>
+          {change.key ?? "(all)"}
+        </span>
+        <span className={styles.entryOperation} data-testid="change-operation">
+          {change.operation}
+        </span>
+        <span className={sourceClass} data-testid="change-source">
+          {change.source}
+        </span>
+        <span className={styles.entryTimestamp} data-testid="change-timestamp">
+          {formatTimestamp(change.timestamp)}
+        </span>
+      </div>
+      {expanded && change.operation !== "clear" && (
+        <div className={styles.entryDetail}>
+          {change.oldValue !== null && (
+            <>
+              <div className={styles.detailLabel}>Old</div>
+              <div>{formatValue(change.oldValue)}</div>
+            </>
+          )}
+          <div className={styles.detailLabel}>New</div>
+          <div>{formatValue(change.newValue)}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function ChangeLog({ changes, recording, truncatedCount, onToggleRecording, onClear }: ChangeLogProps) {
+  const displayedChanges = changes.slice(0, MAX_ENTRIES);
+
+  return (
+    <div className={styles.container} data-testid="change-log">
+      <div className={styles.toolbar}>
+        <button
+          className={styles.recordButton}
+          onClick={onToggleRecording}
+          data-testid="record-toggle"
+        >
+          <span className={`${styles.recordDot} ${recording ? styles.recordDotActive : ""}`} />
+          {recording ? "Recording" : "Paused"}
+        </button>
+        <span className={styles.changeCount} data-testid="change-count">
+          {changes.length} change{changes.length !== 1 ? "s" : ""}
+        </span>
+        <button
+          className={styles.clearButton}
+          onClick={onClear}
+          data-testid="clear-changes"
+        >
+          Clear
+        </button>
+      </div>
+      <div className={styles.entries}>
+        {truncatedCount > 0 && (
+          <div className={styles.truncatedNotice}>
+            {truncatedCount} earlier change{truncatedCount !== 1 ? "s" : ""} truncated
+          </div>
+        )}
+        {displayedChanges.map((change, i) => (
+          <ChangeEntry key={`${change.timestamp}-${i}`} change={change} />
+        ))}
+      </div>
+    </div>
+  );
+}

@@ -257,3 +257,157 @@ test.describe("Search/Filter", () => {
     await sidePanelPage.close();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Change Monitoring
+// ---------------------------------------------------------------------------
+
+test.describe("Change Monitoring", () => {
+  test("captures setItem from page and shows in change log", async ({
+    page,
+    openSidePanel,
+  }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    // Verify change log is visible with recording active
+    await expect(sidePanelPage.getByTestId("change-log")).toBeVisible();
+    await expect(sidePanelPage.getByTestId("record-toggle")).toContainText("Recording");
+
+    // Trigger a setItem from the page context
+    await page.evaluate(() => {
+      localStorage.setItem("monitor-test", "hello");
+    });
+
+    // Wait for the change to appear (batched with 50ms debounce)
+    const entry = sidePanelPage.getByTestId("change-entry").first();
+    await expect(entry).toBeVisible({ timeout: 3000 });
+    await expect(entry.getByTestId("change-operation")).toContainText("setItem");
+    await expect(entry.getByTestId("change-source")).toContainText("page");
+
+    await sidePanelPage.close();
+  });
+
+  test("captures removeItem from page", async ({ page, openSidePanel }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    await page.evaluate(() => {
+      localStorage.setItem("to-remove", "value");
+      localStorage.removeItem("to-remove");
+    });
+
+    // Wait for changes to appear
+    await expect(sidePanelPage.getByTestId("change-entry").first()).toBeVisible({ timeout: 3000 });
+
+    // The most recent entry (first in reverse-chron) should be removeItem
+    const firstEntry = sidePanelPage.getByTestId("change-entry").first();
+    await expect(firstEntry.getByTestId("change-operation")).toContainText("removeItem");
+
+    await sidePanelPage.close();
+  });
+
+  test("captures clear from page", async ({ page, openSidePanel }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    await page.evaluate(() => {
+      localStorage.clear();
+    });
+
+    const entry = sidePanelPage.getByTestId("change-entry").first();
+    await expect(entry).toBeVisible({ timeout: 3000 });
+    await expect(entry.getByTestId("change-operation")).toContainText("clear");
+
+    await sidePanelPage.close();
+  });
+
+  test("recording toggle stops and resumes capture", async ({
+    page,
+    openSidePanel,
+  }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    // Pause recording
+    await sidePanelPage.getByTestId("record-toggle").click();
+    await expect(sidePanelPage.getByTestId("record-toggle")).toContainText("Paused");
+
+    // Trigger change while paused — should NOT appear
+    await page.evaluate(() => {
+      localStorage.setItem("paused-change", "ignored");
+    });
+    // Brief wait to confirm nothing appears
+    await sidePanelPage.waitForTimeout(200);
+    const countText = await sidePanelPage.getByTestId("change-count").textContent();
+    expect(countText).toBe("0 changes");
+
+    // Resume recording
+    await sidePanelPage.getByTestId("record-toggle").click();
+    await expect(sidePanelPage.getByTestId("record-toggle")).toContainText("Recording");
+
+    // Trigger another change — should appear
+    await page.evaluate(() => {
+      localStorage.setItem("resumed-change", "captured");
+    });
+    await expect(sidePanelPage.getByTestId("change-entry").first()).toBeVisible({ timeout: 3000 });
+
+    await sidePanelPage.close();
+  });
+
+  test("clear button empties the log", async ({ page, openSidePanel }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    // Generate some changes
+    await page.evaluate(() => {
+      localStorage.setItem("clear-test", "value");
+    });
+    await expect(sidePanelPage.getByTestId("change-entry").first()).toBeVisible({ timeout: 3000 });
+
+    // Clear the log
+    await sidePanelPage.getByTestId("clear-changes").click();
+    await expect(sidePanelPage.getByTestId("change-count")).toContainText("0 changes");
+
+    await sidePanelPage.close();
+  });
+
+  test("shows timestamp on change entries", async ({ page, openSidePanel }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    await page.evaluate(() => {
+      localStorage.setItem("timestamp-test", "value");
+    });
+
+    const entry = sidePanelPage.getByTestId("change-entry").first();
+    await expect(entry).toBeVisible({ timeout: 3000 });
+
+    // Timestamp should match HH:mm:ss.mmm format
+    const timestamp = await entry.getByTestId("change-timestamp").textContent();
+    expect(timestamp).toMatch(/\d{2}:\d{2}:\d{2}\.\d{3}/);
+
+    await sidePanelPage.close();
+  });
+
+  test("expand/collapse shows old/new values", async ({ page, openSidePanel }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    // Set a value, then update it so we have old + new
+    await page.evaluate(() => {
+      localStorage.setItem("expand-test", "first-val");
+    });
+    await expect(sidePanelPage.getByTestId("change-entry").first()).toBeVisible({ timeout: 3000 });
+
+    await page.evaluate(() => {
+      localStorage.setItem("expand-test", "second-val");
+    });
+
+    // Wait for the second entry to arrive (count should be 2)
+    await expect(sidePanelPage.getByTestId("change-count")).toContainText("2 changes", { timeout: 3000 });
+
+    // Click to expand the first entry (most recent = the update)
+    await sidePanelPage.getByTestId("change-entry").first().click();
+
+    // Should show old and new values in the expanded detail
+    await expect(sidePanelPage.locator("text=first-val")).toBeVisible();
+    await expect(sidePanelPage.locator("text=second-val")).toBeVisible();
+
+    await sidePanelPage.close();
+  });
+
+});
