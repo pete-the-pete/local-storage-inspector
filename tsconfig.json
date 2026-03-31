@@ -10,6 +10,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "types": ["chrome"],
     "noEmit": true,
     "ignoreDeprecations": "6.0",
     "baseUrl": ".",

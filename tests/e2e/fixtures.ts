@@ -6,7 +6,7 @@ const extensionPath = path.resolve(__dirname, "../../dist");
 
 // Patch dist/manifest.json for testing: activeTab only grants permission on
 // a real user click, which Playwright can't simulate. Adding host_permissions
-// lets chrome.scripting.executeScript work when the popup is opened via URL.
+// lets chrome.scripting.executeScript work when the sidepanel is opened via URL.
 // The source manifest.json is NOT modified — only the built output.
 function patchManifestForTesting(): void {
   const manifestPath = path.join(extensionPath, "manifest.json");
@@ -21,7 +21,7 @@ function patchManifestForTesting(): void {
 patchManifestForTesting();
 
 export const test = base.extend<
-  { page: Page; openPopup: (page: Page) => Promise<Page> },
+  { page: Page; openSidePanel: (page: Page) => Promise<Page> },
   { extensionContext: BrowserContext; extensionId: string }
 >({
   // Worker-scoped: one browser context shared across all tests in the file.
@@ -54,22 +54,21 @@ export const test = base.extend<
     await page.close();
   },
 
-  openPopup: async ({ extensionContext, extensionId }, use) => {
+  openSidePanel: async ({ extensionContext, extensionId }, use) => {
     await use(async (page: Page) => {
-      const popupPage = await extensionContext.newPage();
-      // Navigate to the popup URL but don't wait for full load — the popup's
-      // React effects will call chrome.tabs.query({ active: true }) to find
-      // the target tab.  We need the example.com tab to be active at that
-      // point, so bring it to front before the effects fire.
-      await popupPage.goto(
-        `chrome-extension://${extensionId}/src/popup/popup.html`,
+      const sidePanelPage = await extensionContext.newPage();
+      // Navigate to the sidepanel URL. Bring the example.com tab to front
+      // before React effects fire so chrome.tabs.query({ active: true })
+      // finds the correct target tab.
+      await sidePanelPage.goto(
+        `chrome-extension://${extensionId}/src/sidepanel/sidepanel.html`,
         { waitUntil: "commit" },
       );
       await page.bringToFront();
 
-      await popupPage.waitForSelector("text=basic-test", { timeout: 5000 });
+      await sidePanelPage.waitForSelector("text=basic-test", { timeout: 5000 });
 
-      return popupPage;
+      return sidePanelPage;
     });
   },
 });

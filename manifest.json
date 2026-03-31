@@ -1,17 +1,19 @@
 {
   "manifest_version": 3,
   "name": "Local Storage Inspector",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "View and edit localStorage and sessionStorage with a proper JSON editor",
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "sidePanel"],
   "action": {
-    "default_popup": "src/popup/popup.html",
     "default_title": "Local Storage Inspector",
     "default_icon": {
       "16": "public/icons/icon-16.png",
       "32": "public/icons/icon-32.png",
       "48": "public/icons/icon-48.png"
     }
+  },
+  "side_panel": {
+    "default_path": "src/sidepanel/sidepanel.html"
   },
   "icons": {
     "16": "public/icons/icon-16.png",

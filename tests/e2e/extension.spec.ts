@@ -26,7 +26,7 @@ const COMPLEX_JSON = {
 };
 
 // Each test gets its own page with seeded localStorage via beforeEach.
-// The `context`, `extensionId`, and `openPopup` come from fixtures.cts.
+// The `context`, `extensionId`, and `openSidePanel` come from fixtures.ts.
 test.beforeEach(async ({ page }) => {
   await page.goto("https://example.com");
   await page.waitForLoadState("domcontentloaded");
@@ -49,56 +49,37 @@ test.describe("Extension Installation", () => {
     expect(serviceWorker.url()).toContain("chrome-extension://");
   });
 
-  // test("popup can be opened via chrome.action.openPopup", async ({
-  //   context,
-  //   page,
-  // }) => {
-  //   await page.bringToFront();
-
-  //   const [serviceWorker] = extensionContext.serviceWorkers();
-  //   const popupPromise = extensionContext.waitForEvent("page");
-  //   await serviceWorker.evaluate(async () => {
-  //     await (chrome as any).action.openPopup();
-  //   });
-  //   const realPopup = await popupPromise;
-  //   await realPopup.waitForLoadState("domcontentloaded");
-
-  //   const url = realPopup.url();
-  //   expect(url).toContain("popup.html");
-
-  //   if (!realPopup.isClosed()) await realPopup.close();
-  // });
 });
 
 // ---------------------------------------------------------------------------
-// Popup UI
+// Side Panel UI
 // ---------------------------------------------------------------------------
 
-test.describe("Popup UI", () => {
+test.describe("Side Panel UI", () => {
   test("shows Local/Session toggle, search bar, and add button", async ({
     page,
-    openPopup,
+    openSidePanel,
   }) => {
-    const popupPage = await openPopup(page);
+    const sidePanelPage = await openSidePanel(page);
 
-    await expect(popupPage.locator("button", { hasText: "Local" })).toBeVisible();
-    await expect(popupPage.locator("button", { hasText: "Session" })).toBeVisible();
-    await expect(popupPage.locator('input[placeholder="Filter keys..."]')).toBeVisible();
-    await expect(popupPage.locator("button", { hasText: "+ Add new key" })).toBeVisible();
+    await expect(sidePanelPage.locator("button", { hasText: "Local" })).toBeVisible();
+    await expect(sidePanelPage.locator("button", { hasText: "Session" })).toBeVisible();
+    await expect(sidePanelPage.locator('input[placeholder="Filter keys..."]')).toBeVisible();
+    await expect(sidePanelPage.locator("button", { hasText: "+ Add new key" })).toBeVisible();
 
-    await popupPage.close();
+    await sidePanelPage.close();
   });
 
   test("displays seeded storage keys in the key list", async ({
     page,
-    openPopup,
+    openSidePanel,
   }) => {
-    const popupPage = await openPopup(page);
+    const sidePanelPage = await openSidePanel(page);
 
-    await expect(popupPage.locator("text=basic-test")).toBeVisible();
-    await expect(popupPage.locator("text=complex-json")).toBeVisible();
+    await expect(sidePanelPage.locator("text=basic-test")).toBeVisible();
+    await expect(sidePanelPage.locator("text=complex-json")).toBeVisible();
 
-    await popupPage.close();
+    await sidePanelPage.close();
   });
 });
 
@@ -109,33 +90,33 @@ test.describe("Popup UI", () => {
 test.describe("Viewing Values", () => {
   test("basic-test: displays as a plain string (no JSON toggle)", async ({
     page,
-    openPopup,
+    openSidePanel,
   }) => {
-    const popupPage = await openPopup(page);
+    const sidePanelPage = await openSidePanel(page);
 
-    await popupPage.locator("text=basic-test").click();
+    await sidePanelPage.locator("text=basic-test").click();
 
-    await expect(popupPage.locator("span", { hasText: "basic-test" })).toBeVisible();
+    await expect(sidePanelPage.locator("span", { hasText: "basic-test" })).toBeVisible();
 
-    const editorContent = await popupPage.locator(".cm-content").textContent();
+    const editorContent = await sidePanelPage.locator(".cm-content").textContent();
     expect(editorContent).toContain("hello world");
 
-    await expect(popupPage.locator('input[type="checkbox"]')).not.toBeChecked();
+    await expect(sidePanelPage.locator('input[type="checkbox"]')).not.toBeChecked();
 
-    await popupPage.close();
+    await sidePanelPage.close();
   });
 
   test("complex-json: displays pretty-printed with 5 nesting levels", async ({
     page,
-    openPopup,
+    openSidePanel,
   }) => {
-    const popupPage = await openPopup(page);
+    const sidePanelPage = await openSidePanel(page);
 
-    await popupPage.locator("text=complex-json").click();
+    await sidePanelPage.locator("text=complex-json").click();
 
-    await expect(popupPage.locator('input[type="checkbox"]')).toBeChecked();
+    await expect(sidePanelPage.locator('input[type="checkbox"]')).toBeChecked();
 
-    const editorContent = await popupPage.locator(".cm-content").textContent();
+    const editorContent = await sidePanelPage.locator(".cm-content").textContent();
 
     expect(editorContent).toContain('"user"');
     expect(editorContent).toContain('"profile"');
@@ -149,7 +130,7 @@ test.describe("Viewing Values", () => {
     expect(editorContent).toContain('"dark"');
     expect(editorContent).toContain('"beta-tester"');
 
-    await popupPage.close();
+    await sidePanelPage.close();
   });
 });
 
@@ -159,64 +140,64 @@ test.describe("Viewing Values", () => {
 
 test.describe("Editing and Saving", () => {
   /** Select all + replace content in the CodeMirror editor via keyboard. */
-  async function replaceEditorContent(popupPage: import("@playwright/test").Page, text: string) {
-    await popupPage.waitForSelector(".cm-content");
-    const editor = popupPage.locator(".cm-content");
+  async function replaceEditorContent(sidePanelPage: import("@playwright/test").Page, text: string) {
+    await sidePanelPage.waitForSelector(".cm-content");
+    const editor = sidePanelPage.locator(".cm-content");
     await editor.click();
     // Triple-click to select entire line, then Mod-a for full doc selection.
     // Using both ensures reliable selection across CodeMirror versions.
-    await popupPage.keyboard.press("Meta+a");
-    await popupPage.keyboard.press("Backspace");
-    await popupPage.keyboard.insertText(text);
+    await sidePanelPage.keyboard.press("Meta+a");
+    await sidePanelPage.keyboard.press("Backspace");
+    await sidePanelPage.keyboard.insertText(text);
   }
 
   test("edits a string value and persists to localStorage", async ({
     page,
-    openPopup,
+    openSidePanel,
   }) => {
-    const popupPage = await openPopup(page);
+    const sidePanelPage = await openSidePanel(page);
 
-    await popupPage.locator("text=basic-test").click();
-    await replaceEditorContent(popupPage, "updated value");
+    await sidePanelPage.locator("text=basic-test").click();
+    await replaceEditorContent(sidePanelPage, "updated value");
 
-    await popupPage.locator("button", { hasText: "Save" }).click();
-    await expect(popupPage.getByText("Saved", { exact: true })).toBeVisible();
+    await sidePanelPage.locator("button", { hasText: "Save" }).click();
+    await expect(sidePanelPage.getByText("Saved", { exact: true })).toBeVisible();
 
     const storedValue = await page.evaluate(() => localStorage.getItem("basic-test"));
     expect(storedValue).toBe("updated value");
 
-    await popupPage.close();
+    await sidePanelPage.close();
   });
 
   test("edits a JSON value and persists compacted JSON to localStorage", async ({
     page,
-    openPopup,
+    openSidePanel,
   }) => {
-    const popupPage = await openPopup(page);
+    const sidePanelPage = await openSidePanel(page);
 
-    await popupPage.locator("text=complex-json").click();
+    await sidePanelPage.locator("text=complex-json").click();
     const newJson = JSON.stringify({ user: { name: "Bob", level: 42 } }, null, 2);
-    await replaceEditorContent(popupPage, newJson);
+    await replaceEditorContent(sidePanelPage, newJson);
 
-    await popupPage.locator("button", { hasText: "Save" }).click();
-    await expect(popupPage.getByText("Saved", { exact: true })).toBeVisible();
+    await sidePanelPage.locator("button", { hasText: "Save" }).click();
+    await expect(sidePanelPage.getByText("Saved", { exact: true })).toBeVisible();
 
     const storedValue = await page.evaluate(() => localStorage.getItem("complex-json"));
     const parsed = JSON.parse(storedValue as string);
     expect(parsed).toEqual({ user: { name: "Bob", level: 42 } });
 
-    await popupPage.close();
+    await sidePanelPage.close();
   });
 
-  test("disables save for invalid JSON", async ({ page, openPopup }) => {
-    const popupPage = await openPopup(page);
+  test("disables save for invalid JSON", async ({ page, openSidePanel }) => {
+    const sidePanelPage = await openSidePanel(page);
 
-    await popupPage.locator("text=complex-json").click();
-    await replaceEditorContent(popupPage, '{"broken": }');
+    await sidePanelPage.locator("text=complex-json").click();
+    await replaceEditorContent(sidePanelPage, '{"broken": }');
 
-    await expect(popupPage.locator("button", { hasText: "Save" })).toBeDisabled();
+    await expect(sidePanelPage.locator("button", { hasText: "Save" })).toBeDisabled();
 
-    await popupPage.close();
+    await sidePanelPage.close();
   });
 });
 
@@ -225,32 +206,32 @@ test.describe("Editing and Saving", () => {
 // ---------------------------------------------------------------------------
 
 test.describe("Syntax Highlighting", () => {
-  test("JSON values render with One Dark theme", async ({ page, openPopup }) => {
-    const popupPage = await openPopup(page);
+  test("JSON values render with One Dark theme", async ({ page, openSidePanel }) => {
+    const sidePanelPage = await openSidePanel(page);
 
-    await popupPage.locator("text=complex-json").click();
-    await popupPage.waitForSelector(".cm-editor");
+    await sidePanelPage.locator("text=complex-json").click();
+    await sidePanelPage.waitForSelector(".cm-editor");
 
-    const hasDarkTheme = await popupPage.locator(".cm-editor").evaluate((el) =>
+    const hasDarkTheme = await sidePanelPage.locator(".cm-editor").evaluate((el) =>
       getComputedStyle(el).backgroundColor === "rgb(40, 44, 52)",
     );
     expect(hasDarkTheme).toBe(true);
 
-    await popupPage.close();
+    await sidePanelPage.close();
   });
 
-  test("plain text values render without theme", async ({ page, openPopup }) => {
-    const popupPage = await openPopup(page);
+  test("plain text values render without theme", async ({ page, openSidePanel }) => {
+    const sidePanelPage = await openSidePanel(page);
 
-    await popupPage.locator("text=basic-test").click();
-    await popupPage.waitForSelector(".cm-editor");
+    await sidePanelPage.locator("text=basic-test").click();
+    await sidePanelPage.waitForSelector(".cm-editor");
 
-    const hasDarkTheme = await popupPage.locator(".cm-editor").evaluate((el) =>
+    const hasDarkTheme = await sidePanelPage.locator(".cm-editor").evaluate((el) =>
       getComputedStyle(el).backgroundColor === "rgb(40, 44, 52)",
     );
     expect(hasDarkTheme).toBe(false);
 
-    await popupPage.close();
+    await sidePanelPage.close();
   });
 });
 
@@ -259,20 +240,20 @@ test.describe("Syntax Highlighting", () => {
 // ---------------------------------------------------------------------------
 
 test.describe("Search/Filter", () => {
-  test("filters keys by search query", async ({ page, openPopup }) => {
-    const popupPage = await openPopup(page);
+  test("filters keys by search query", async ({ page, openSidePanel }) => {
+    const sidePanelPage = await openSidePanel(page);
 
-    await expect(popupPage.locator("text=basic-test")).toBeVisible();
-    await expect(popupPage.locator("text=complex-json")).toBeVisible();
+    await expect(sidePanelPage.locator("text=basic-test")).toBeVisible();
+    await expect(sidePanelPage.locator("text=complex-json")).toBeVisible();
 
-    await popupPage.locator('input[placeholder="Filter keys..."]').fill("basic");
-    await expect(popupPage.locator("text=basic-test")).toBeVisible();
-    await expect(popupPage.locator("text=complex-json")).not.toBeVisible();
+    await sidePanelPage.locator('input[placeholder="Filter keys..."]').fill("basic");
+    await expect(sidePanelPage.locator("text=basic-test")).toBeVisible();
+    await expect(sidePanelPage.locator("text=complex-json")).not.toBeVisible();
 
-    await popupPage.locator('input[placeholder="Filter keys..."]').fill("");
-    await expect(popupPage.locator("text=basic-test")).toBeVisible();
-    await expect(popupPage.locator("text=complex-json")).toBeVisible();
+    await sidePanelPage.locator('input[placeholder="Filter keys..."]').fill("");
+    await expect(sidePanelPage.locator("text=basic-test")).toBeVisible();
+    await expect(sidePanelPage.locator("text=complex-json")).toBeVisible();
 
-    await popupPage.close();
+    await sidePanelPage.close();
   });
 });
