@@ -31,18 +31,25 @@ function readStorage(storageType: string): Array<{ key: string; value: string }>
 
 function writeStorage(storageType: string, key: string, value: string): void {
   const storage = storageType === "localStorage" ? localStorage : sessionStorage;
+  (window as unknown as Record<symbol, unknown>)[Symbol.for("lsi-extension-flag")] = true;
   storage.setItem(key, value);
 }
 
 function removeFromStorage(storageType: string, key: string): void {
   const storage = storageType === "localStorage" ? localStorage : sessionStorage;
+  (window as unknown as Record<symbol, unknown>)[Symbol.for("lsi-extension-flag")] = true;
   storage.removeItem(key);
 }
 
 function importToStorage(storageType: string, entries: Record<string, string>, clearFirst: boolean): void {
   const storage = storageType === "localStorage" ? localStorage : sessionStorage;
-  if (clearFirst) storage.clear();
+  const FLAG = Symbol.for("lsi-extension-flag");
+  if (clearFirst) {
+    (window as unknown as Record<symbol, unknown>)[FLAG] = true;
+    storage.clear();
+  }
   for (const [key, value] of Object.entries(entries)) {
+    (window as unknown as Record<symbol, unknown>)[FLAG] = true;
     storage.setItem(key, value);
   }
 }
@@ -75,17 +82,6 @@ export function App() {
     });
   }, []);
 
-  // Start/stop recording by messaging the content script
-  const sendRecordingMessage = useCallback(async (start: boolean) => {
-    const tabId = await getActiveTabId();
-    if (!tabId) return;
-    try {
-      await chrome.tabs.sendMessage(tabId, { type: start ? "START_RECORDING" : "STOP_RECORDING" });
-    } catch {
-      // Content script may not be ready yet
-    }
-  }, []);
-
   // Listen for change events from the content script via runtime messages
   useEffect(() => {
     const handleMessage = (message: StorageChangePortMessage) => {
@@ -98,17 +94,11 @@ export function App() {
     return () => chrome.runtime.onMessage.removeListener(handleMessage);
   }, [addChanges]);
 
-  // Start recording on initial load
-  useEffect(() => {
-    sendRecordingMessage(true);
-  }, [sendRecordingMessage]);
-
   const handleToggleRecording = useCallback(() => {
     const newRecording = !recordingRef.current;
     recordingRef.current = newRecording;
     setRecording(newRecording);
-    sendRecordingMessage(newRecording);
-  }, [sendRecordingMessage]);
+  }, []);
 
   const handleClearChanges = useCallback(() => {
     setChanges([]);
@@ -155,6 +145,7 @@ export function App() {
       if (!tabId) return;
       await chrome.scripting.executeScript({
         target: { tabId },
+        world: "MAIN",
         func: writeStorage,
         args: [storageType, key, value],
       });
@@ -171,6 +162,7 @@ export function App() {
       if (!tabId) return;
       await chrome.scripting.executeScript({
         target: { tabId },
+        world: "MAIN",
         func: removeFromStorage,
         args: [storageType, key],
       });
@@ -190,6 +182,7 @@ export function App() {
       if (!tabId) return;
       await chrome.scripting.executeScript({
         target: { tabId },
+        world: "MAIN",
         func: importToStorage,
         args: [storageType, importEntries, clearFirst],
       });
