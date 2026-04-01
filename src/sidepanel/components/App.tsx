@@ -43,7 +43,11 @@ export function App() {
 
   // Listen for change events from the content script via runtime messages
   useEffect(() => {
-    const handleMessage = (message: StorageChangePortMessage) => {
+    const handleMessage = (
+      message: StorageChangePortMessage,
+      sender: chrome.runtime.MessageSender,
+    ) => {
+      if (sender.id !== chrome.runtime.id) return;
       if (message.type === "STORAGE_CHANGE" && recordingRef.current) {
         addChanges(message.changes);
       }
