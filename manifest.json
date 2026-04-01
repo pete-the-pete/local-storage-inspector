@@ -26,14 +26,15 @@
       "matches": ["<all_urls>"],
       "js": ["src/content/monitor.ts"],
       "run_at": "document_idle"
-    }
-  ],
-  "web_accessible_resources": [
+    },
     {
-      "resources": ["storage-interceptor.js"],
-      "matches": ["<all_urls>"]
+      "matches": ["<all_urls>"],
+      "js": ["public/storage-interceptor.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
     }
   ],
+  "web_accessible_resources": [],
   "background": {
     "service_worker": "src/background/service-worker.ts"
   }

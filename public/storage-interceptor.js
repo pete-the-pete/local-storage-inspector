@@ -93,11 +93,4 @@
     }
   };
 
-  // Listen for extension flag setting from monitor (via postMessage from ISOLATED world)
-  window.addEventListener("message", function (event) {
-    if (event.data && event.data._lsi === "monitor" && event.data.type === "SET_EXTENSION_FLAG") {
-      window[EXTENSION_FLAG] = true;
-      window.postMessage({ _lsi: "interceptor", type: "EXTENSION_FLAG_SET" }, "*");
-    }
-  });
 })();
