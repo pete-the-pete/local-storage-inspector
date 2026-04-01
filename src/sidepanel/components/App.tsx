@@ -204,11 +204,11 @@ export function App() {
                 onCopy={handleCopy}
               />
             ) : addingNew ? (
-              <div style={{ flex: 1, padding: 12 }}>
-                <div style={{ marginBottom: 8 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600 }}>Key name:</label>
+              <div className={styles.newKeySection}>
+                <div className={styles.newKeyLabel}>
+                  <label className={styles.newKeyLabelText}>Key name:</label>
                   <input
-                    style={{ width: "100%", padding: "4px 8px", marginTop: 4, boxSizing: "border-box", border: "1px solid #ccc", borderRadius: 4, fontSize: 12 }}
+                    className={styles.newKeyInput}
                     value={newKeyName}
                     onChange={(e) => setNewKeyName(e.target.value)}
                     placeholder="Enter key name"
@@ -232,7 +232,7 @@ export function App() {
                 )}
               </div>
             ) : (
-              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#999" }}>
+              <div className={styles.noSelection}>
                 Select a key to edit
               </div>
             )}
