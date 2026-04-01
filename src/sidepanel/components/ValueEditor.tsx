@@ -24,6 +24,7 @@ export function ValueEditor({ storageKey, value, onSave, onDelete, onCopy }: Val
   const [showSuccess, setShowSuccess] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const viewRef = useRef<EditorView | null>(null);
+  const handleSaveRef = useRef<() => void>(() => {});
 
   const initEditor = useCallback(
     (node: HTMLDivElement | null) => {
@@ -50,7 +51,7 @@ export function ValueEditor({ storageKey, value, onSave, onDelete, onCopy }: Val
           {
             key: "Mod-s",
             run: () => {
-              handleSave();
+              handleSaveRef.current();
               return true;
             },
           },
@@ -84,6 +85,8 @@ export function ValueEditor({ storageKey, value, onSave, onDelete, onCopy }: Val
     setShowSuccess(true);
     setTimeout(() => setShowSuccess(false), 1500);
   };
+
+  handleSaveRef.current = handleSave;
 
   const handleToggleJson = () => {
     const newMode = !jsonMode;
