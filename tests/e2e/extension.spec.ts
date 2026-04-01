@@ -411,3 +411,123 @@ test.describe("Change Monitoring", () => {
   });
 
 });
+
+test.describe("Change Log Diff", () => {
+  test("shows field-level summary for JSON changes in collapsed view", async ({
+    page,
+    openSidePanel,
+  }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    // Set initial JSON value
+    await page.evaluate(() => {
+      localStorage.setItem("diff-test", JSON.stringify({ name: "Alice", age: 30 }));
+    });
+    await expect(sidePanelPage.getByTestId("change-entry").first()).toBeVisible({ timeout: 3000 });
+
+    // Update with field change
+    await page.evaluate(() => {
+      localStorage.setItem(
+        "diff-test",
+        JSON.stringify({ name: "Alice", age: 31, role: "admin" }),
+      );
+    });
+    await expect(sidePanelPage.getByTestId("change-count")).toContainText("2 changes", { timeout: 3000 });
+
+    // Most recent entry should have a change summary
+    const summary = sidePanelPage.getByTestId("change-summary").first();
+    await expect(summary).toBeVisible();
+    await expect(summary).toContainText("~");
+
+    await sidePanelPage.close();
+  });
+
+  test("shows '(new)' summary for new keys", async ({ page, openSidePanel }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    await page.evaluate(() => {
+      localStorage.setItem("brand-new-key", "some-value");
+    });
+
+    const summary = sidePanelPage.getByTestId("change-summary").first();
+    await expect(summary).toBeVisible({ timeout: 3000 });
+    await expect(summary).toContainText("(new)");
+
+    await sidePanelPage.close();
+  });
+
+  test("shows 'value changed' summary for plain string changes", async ({
+    page,
+    openSidePanel,
+  }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    await page.evaluate(() => {
+      localStorage.setItem("str-test", "first");
+    });
+    await expect(sidePanelPage.getByTestId("change-entry").first()).toBeVisible({ timeout: 3000 });
+
+    await page.evaluate(() => {
+      localStorage.setItem("str-test", "second");
+    });
+    await expect(sidePanelPage.getByTestId("change-count")).toContainText("2 changes", { timeout: 3000 });
+
+    const summary = sidePanelPage.getByTestId("change-summary").first();
+    await expect(summary).toContainText("value changed");
+
+    await sidePanelPage.close();
+  });
+
+  test("expanded inline diff highlights changed lines", async ({
+    page,
+    openSidePanel,
+  }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    await page.evaluate(() => {
+      localStorage.setItem("inline-test", JSON.stringify({ name: "Alice", age: 30 }));
+    });
+    await expect(sidePanelPage.getByTestId("change-entry").first()).toBeVisible({ timeout: 3000 });
+
+    await page.evaluate(() => {
+      localStorage.setItem("inline-test", JSON.stringify({ name: "Alice", age: 31 }));
+    });
+    await expect(sidePanelPage.getByTestId("change-count")).toContainText("2 changes", { timeout: 3000 });
+
+    // Expand the most recent entry
+    await sidePanelPage.getByTestId("change-entry").first().click();
+
+    // Should show inline diff by default with diff mode buttons
+    await expect(sidePanelPage.getByTestId("diff-mode-inline")).toBeVisible();
+    await expect(sidePanelPage.getByTestId("diff-mode-unified")).toBeVisible();
+
+    await sidePanelPage.close();
+  });
+
+  test("toggle to unified diff shows +/- prefixed lines", async ({
+    page,
+    openSidePanel,
+  }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    await page.evaluate(() => {
+      localStorage.setItem("unified-test", "old-value");
+    });
+    await expect(sidePanelPage.getByTestId("change-entry").first()).toBeVisible({ timeout: 3000 });
+
+    await page.evaluate(() => {
+      localStorage.setItem("unified-test", "new-value");
+    });
+    await expect(sidePanelPage.getByTestId("change-count")).toContainText("2 changes", { timeout: 3000 });
+
+    // Expand and switch to unified
+    await sidePanelPage.getByTestId("change-entry").first().click();
+    await sidePanelPage.getByTestId("diff-mode-unified").click();
+
+    // Unified view should show - and + prefixed lines
+    await expect(sidePanelPage.locator("text=- old-value")).toBeVisible();
+    await expect(sidePanelPage.locator("text=+ new-value")).toBeVisible();
+
+    await sidePanelPage.close();
+  });
+});
