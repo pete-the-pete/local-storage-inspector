@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { StorageChangeEvent } from "@/shared/types";
+import { jsonDiff, formatChangeSummary } from "@/lib/diff";
 import styles from "./ChangeLog.module.css";
 
 const MAX_ENTRIES = 100;
@@ -33,12 +34,24 @@ function formatValue(value: string | null): string {
 function ChangeEntry({ change }: { change: StorageChangeEvent }) {
   const [expanded, setExpanded] = useState(false);
 
-  const sourceClass = change.source === "extension"
-    ? `${styles.entrySource} ${styles.entrySourceExtension}`
-    : styles.entrySource;
+  const fieldChanges =
+    change.operation !== "clear"
+      ? jsonDiff(change.oldValue, change.newValue)
+      : [];
+  const summary =
+    change.operation === "clear" ? "" : formatChangeSummary(fieldChanges);
+
+  const sourceClass =
+    change.source === "extension"
+      ? `${styles.entrySource} ${styles.entrySourceExtension}`
+      : styles.entrySource;
 
   return (
-    <div className={styles.entry} onClick={() => setExpanded(!expanded)} data-testid="change-entry">
+    <div
+      className={styles.entry}
+      onClick={() => setExpanded(!expanded)}
+      data-testid="change-entry"
+    >
       <div className={styles.entryHeader}>
         <span className={styles.entryKey} title={change.key ?? undefined}>
           {change.key ?? "(all)"}
@@ -53,6 +66,11 @@ function ChangeEntry({ change }: { change: StorageChangeEvent }) {
           {formatTimestamp(change.timestamp)}
         </span>
       </div>
+      {summary && (
+        <div className={styles.changeSummary} data-testid="change-summary">
+          {summary}
+        </div>
+      )}
       {expanded && change.operation !== "clear" && (
         <div className={styles.entryDetail}>
           {change.oldValue !== null && (
