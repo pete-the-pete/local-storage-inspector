@@ -70,27 +70,7 @@ export interface StorageChangeEvent {
   source: ChangeSource;
 }
 
-export interface StartRecordingMessage {
-  type: "START_RECORDING";
-}
-
-export interface StopRecordingMessage {
-  type: "STOP_RECORDING";
-}
-
-export interface SetExtensionFlagMessage {
-  type: "SET_EXTENSION_FLAG";
-}
-
-export interface SetExtensionFlagResponse {
-  type: "SET_EXTENSION_FLAG_RESPONSE";
-  success: boolean;
-}
-
 export interface StorageChangePortMessage {
   type: "STORAGE_CHANGE";
   changes: StorageChangeEvent[];
 }
-
-export type MonitorMessage = StartRecordingMessage | StopRecordingMessage | SetExtensionFlagMessage;
-export type MonitorResponse = SetExtensionFlagResponse;
