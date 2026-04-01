@@ -52,7 +52,7 @@ function InlineDiff({
               .filter((l) => l.type !== "added")
               .map((line, i) => (
                 <div
-                  key={i}
+                  key={`old-${i}`}
                   className={
                     line.type === "removed" ? styles.diffRemoved : undefined
                   }
@@ -69,7 +69,7 @@ function InlineDiff({
           .filter((l) => l.type !== "removed")
           .map((line, i) => (
             <div
-              key={i}
+              key={`new-${i}`}
               className={
                 line.type === "added" ? styles.diffAdded : undefined
               }
