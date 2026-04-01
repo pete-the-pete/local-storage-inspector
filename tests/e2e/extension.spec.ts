@@ -410,6 +410,54 @@ test.describe("Change Monitoring", () => {
     await sidePanelPage.close();
   });
 
+  test("captures extension-initiated save with source extension", async ({
+    page,
+    openSidePanel,
+  }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    // Click a key to select it
+    await sidePanelPage.locator("text=basic-test").click();
+
+    // Edit the value in the CodeMirror editor
+    const editor = sidePanelPage.locator(".cm-content");
+    await editor.click();
+    await sidePanelPage.keyboard.press("Meta+a");
+    await sidePanelPage.keyboard.type("updated-value");
+
+    // Save
+    await sidePanelPage.locator("button", { hasText: "Save" }).click();
+
+    // A change entry should appear with source "extension"
+    const entry = sidePanelPage.getByTestId("change-entry").first();
+    await expect(entry).toBeVisible({ timeout: 3000 });
+    await expect(entry.getByTestId("change-source")).toContainText("extension");
+
+    await sidePanelPage.close();
+  });
+
+  test("captures extension-initiated delete with source extension", async ({
+    page,
+    openSidePanel,
+  }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    // Click a key to select it
+    await sidePanelPage.locator("text=basic-test").click();
+
+    // Delete it (first click shows "Confirm?", second click deletes)
+    await sidePanelPage.locator("button", { hasText: "Delete" }).click();
+    await sidePanelPage.locator("button", { hasText: "Confirm?" }).click();
+
+    // A change entry should appear with source "extension"
+    const entry = sidePanelPage.getByTestId("change-entry").first();
+    await expect(entry).toBeVisible({ timeout: 3000 });
+    await expect(entry.getByTestId("change-operation")).toContainText("removeItem");
+    await expect(entry.getByTestId("change-source")).toContainText("extension");
+
+    await sidePanelPage.close();
+  });
+
 });
 
 test.describe("Change Log Diff", () => {

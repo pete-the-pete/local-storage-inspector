@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import type {
   StorageChangeEvent,
   StorageChangePortMessage,
-  MonitorMessage,
   StorageOperation,
   ChangeSource,
 } from "@/shared/types";
@@ -87,23 +86,6 @@ describe("StorageChangePortMessage", () => {
 
     expect(message.type).toBe("STORAGE_CHANGE");
     expect(message.changes).toHaveLength(2);
-  });
-});
-
-describe("MonitorMessage types", () => {
-  it("includes START_RECORDING", () => {
-    const msg: MonitorMessage = { type: "START_RECORDING" };
-    expect(msg.type).toBe("START_RECORDING");
-  });
-
-  it("includes STOP_RECORDING", () => {
-    const msg: MonitorMessage = { type: "STOP_RECORDING" };
-    expect(msg.type).toBe("STOP_RECORDING");
-  });
-
-  it("includes SET_EXTENSION_FLAG", () => {
-    const msg: MonitorMessage = { type: "SET_EXTENSION_FLAG" };
-    expect(msg.type).toBe("SET_EXTENSION_FLAG");
   });
 });
 

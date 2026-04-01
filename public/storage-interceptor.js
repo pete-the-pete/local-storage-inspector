@@ -1,5 +1,5 @@
 // MAIN world script — monkey-patches Storage.prototype to capture mutations.
-// Injected via <script> tag by the monitor content script.
+// Declared in manifest.json (world: "MAIN") to avoid ad blocker / CSP blocking.
 // Communicates with the ISOLATED world monitor via window.postMessage.
 
 (function () {
@@ -93,11 +93,4 @@
     }
   };
 
-  // Listen for extension flag setting from monitor (via postMessage from ISOLATED world)
-  window.addEventListener("message", function (event) {
-    if (event.data && event.data._lsi === "monitor" && event.data.type === "SET_EXTENSION_FLAG") {
-      window[EXTENSION_FLAG] = true;
-      window.postMessage({ _lsi: "interceptor", type: "EXTENSION_FLAG_SET" }, "*");
-    }
-  });
 })();
