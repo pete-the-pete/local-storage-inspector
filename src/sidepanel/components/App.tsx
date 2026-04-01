@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import type { StorageType, StorageEntry, StorageChangeEvent, StorageChangePortMessage } from "@/shared/types";
 
 import { filterEntries } from "@/lib/filter";
+import { getActiveTabId, readStorage, writeStorage, removeFromStorage, importToStorage } from "@/lib/storage";
 import styles from "./App.module.css";
 import { StorageToggle } from "./StorageToggle";
 import { SearchBar } from "./SearchBar";
@@ -11,48 +12,6 @@ import { ImportExport } from "./ImportExport";
 import { ChangeLog } from "./ChangeLog";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
-
-async function getActiveTabId(): Promise<number | null> {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  return tab?.id ?? null;
-}
-
-function readStorage(storageType: string): Array<{ key: string; value: string }> {
-  const storage = storageType === "localStorage" ? localStorage : sessionStorage;
-  const entries: Array<{ key: string; value: string }> = [];
-  for (let i = 0; i < storage.length; i++) {
-    const key = storage.key(i);
-    if (key !== null) {
-      entries.push({ key, value: storage.getItem(key) ?? "" });
-    }
-  }
-  return entries;
-}
-
-function writeStorage(storageType: string, key: string, value: string): void {
-  const storage = storageType === "localStorage" ? localStorage : sessionStorage;
-  (window as unknown as Record<symbol, unknown>)[Symbol.for("lsi-extension-flag")] = true;
-  storage.setItem(key, value);
-}
-
-function removeFromStorage(storageType: string, key: string): void {
-  const storage = storageType === "localStorage" ? localStorage : sessionStorage;
-  (window as unknown as Record<symbol, unknown>)[Symbol.for("lsi-extension-flag")] = true;
-  storage.removeItem(key);
-}
-
-function importToStorage(storageType: string, entries: Record<string, string>, clearFirst: boolean): void {
-  const storage = storageType === "localStorage" ? localStorage : sessionStorage;
-  const FLAG = Symbol.for("lsi-extension-flag");
-  if (clearFirst) {
-    (window as unknown as Record<symbol, unknown>)[FLAG] = true;
-    storage.clear();
-  }
-  for (const [key, value] of Object.entries(entries)) {
-    (window as unknown as Record<symbol, unknown>)[FLAG] = true;
-    storage.setItem(key, value);
-  }
-}
 
 export function App() {
   const [storageType, setStorageType] = useState<StorageType>("localStorage");
@@ -84,7 +43,11 @@ export function App() {
 
   // Listen for change events from the content script via runtime messages
   useEffect(() => {
-    const handleMessage = (message: StorageChangePortMessage) => {
+    const handleMessage = (
+      message: StorageChangePortMessage,
+      sender: chrome.runtime.MessageSender,
+    ) => {
+      if (sender.id !== chrome.runtime.id) return;
       if (message.type === "STORAGE_CHANGE" && recordingRef.current) {
         addChanges(message.changes);
       }
@@ -198,9 +161,10 @@ export function App() {
     }
   }, []);
 
-  if (typeof window !== "undefined") {
+  useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
-  }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   const filteredEntries = filterEntries(entries, searchQuery);
 
@@ -244,11 +208,11 @@ export function App() {
                 onCopy={handleCopy}
               />
             ) : addingNew ? (
-              <div style={{ flex: 1, padding: 12 }}>
-                <div style={{ marginBottom: 8 }}>
-                  <label style={{ fontSize: 12, fontWeight: 600 }}>Key name:</label>
+              <div className={styles.newKeySection}>
+                <div className={styles.newKeyLabel}>
+                  <label className={styles.newKeyLabelText}>Key name:</label>
                   <input
-                    style={{ width: "100%", padding: "4px 8px", marginTop: 4, boxSizing: "border-box", border: "1px solid #ccc", borderRadius: 4, fontSize: 12 }}
+                    className={styles.newKeyInput}
                     value={newKeyName}
                     onChange={(e) => setNewKeyName(e.target.value)}
                     placeholder="Enter key name"
@@ -272,7 +236,7 @@ export function App() {
                 )}
               </div>
             ) : (
-              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#999" }}>
+              <div className={styles.noSelection}>
                 Select a key to edit
               </div>
             )}

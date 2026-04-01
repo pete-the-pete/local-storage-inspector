@@ -4,6 +4,7 @@
 // so no dynamic injection is needed.
 
 import type { StorageChangeEvent, StorageChangePortMessage } from "@/shared/types";
+import { isValidStorageChangeData } from "@/lib/validate";
 
 const BATCH_INTERVAL_MS = 50;
 
@@ -35,6 +36,7 @@ function queueChange(event: StorageChangeEvent): void {
 // Listen for change events from the MAIN world interceptor
 window.addEventListener("message", (event) => {
   if (event.data?._lsi !== "interceptor") return;
+  if (!isValidStorageChangeData(event.data)) return;
 
   const change: StorageChangeEvent = {
     storageType: event.data.storageType,

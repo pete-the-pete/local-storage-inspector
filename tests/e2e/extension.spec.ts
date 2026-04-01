@@ -144,9 +144,8 @@ test.describe("Editing and Saving", () => {
     await sidePanelPage.waitForSelector(".cm-content");
     const editor = sidePanelPage.locator(".cm-content");
     await editor.click();
-    // Triple-click to select entire line, then Mod-a for full doc selection.
-    // Using both ensures reliable selection across CodeMirror versions.
-    await sidePanelPage.keyboard.press("Meta+a");
+    const mod = process.platform === "darwin" ? "Meta" : "Control";
+    await sidePanelPage.keyboard.press(`${mod}+a`);
     await sidePanelPage.keyboard.press("Backspace");
     await sidePanelPage.keyboard.insertText(text);
   }
@@ -422,7 +421,8 @@ test.describe("Change Monitoring", () => {
     // Edit the value in the CodeMirror editor
     const editor = sidePanelPage.locator(".cm-content");
     await editor.click();
-    await sidePanelPage.keyboard.press("Meta+a");
+    const mod = process.platform === "darwin" ? "Meta" : "Control";
+    await sidePanelPage.keyboard.press(`${mod}+a`);
     await sidePanelPage.keyboard.type("updated-value");
 
     // Save
