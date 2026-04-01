@@ -49,6 +49,10 @@ Fix any failures before pushing. Do not push broken code.
 - `tests/unit/` — Vitest unit tests
 - `tests/e2e/` — Playwright E2E tests
 
+## Execution Preferences
+
+- Always use **subagent-driven development** when executing implementation plans.
+
 ## Tech Stack
 
 - Bun (package manager + script runner)
