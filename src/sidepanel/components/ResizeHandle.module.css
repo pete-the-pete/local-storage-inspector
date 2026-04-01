@@ -1,0 +1,72 @@
+.handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  border: none;
+  position: relative;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.handle:hover {
+  background: #e0e0e0;
+}
+
+.horizontal {
+  width: 6px;
+  cursor: col-resize;
+  flex-direction: column;
+}
+
+.vertical {
+  height: 6px;
+  cursor: row-resize;
+  flex-direction: row;
+}
+
+.grip {
+  color: #999;
+  font-size: 10px;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.handle:hover .grip {
+  color: #666;
+}
+
+.collapseButton {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  color: #666;
+  padding: 0;
+  z-index: 1;
+}
+
+.collapseButton:hover {
+  background: #f0f0f0;
+  border-color: #999;
+}
+
+.collapsedHandle {
+  width: 20px;
+  cursor: pointer;
+  background: #f8f8f8;
+}
+
+.collapsedHandle:hover {
+  background: #e8e8e8;
+}
