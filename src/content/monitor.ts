@@ -4,7 +4,29 @@
 // so no dynamic injection is needed.
 
 import type { StorageChangeEvent, StorageChangePortMessage } from "@/shared/types";
-import { isValidStorageChangeData } from "@/lib/validate";
+
+// Inlined here rather than imported from @/lib/validate because content scripts
+// are classic scripts — Vite code-splits shared modules into separate chunks
+// that content scripts can't load via ES module imports.
+function isValidStorageChangeData(data: unknown): boolean {
+  if (typeof data !== "object" || data === null) return false;
+  const d = data as Record<string, unknown>;
+  const validStorageTypes = ["localStorage", "sessionStorage"];
+  const validOperations = ["setItem", "removeItem", "clear"];
+  const validSources = ["page", "extension", "unknown"];
+  return (
+    typeof d.storageType === "string" &&
+    validStorageTypes.includes(d.storageType) &&
+    typeof d.operation === "string" &&
+    validOperations.includes(d.operation) &&
+    typeof d.source === "string" &&
+    validSources.includes(d.source) &&
+    typeof d.timestamp === "number" &&
+    (typeof d.key === "string" || d.key === null) &&
+    (typeof d.oldValue === "string" || d.oldValue === null) &&
+    (typeof d.newValue === "string" || d.newValue === null)
+  );
+}
 
 const BATCH_INTERVAL_MS = 50;
 
