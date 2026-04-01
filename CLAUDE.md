@@ -41,9 +41,9 @@ Fix any failures before pushing. Do not push broken code.
 
 ## Project Structure
 
-- `src/lib/` — pure functions (parse, validate, filter, serialization)
-- `src/shared/` — TypeScript types and message creators shared between popup and content script
-- `src/popup/components/` — React components
+- `src/lib/` — pure functions (parse, validate, filter, diff, storage helpers)
+- `src/shared/` — TypeScript types shared between sidepanel and content script
+- `src/sidepanel/components/` — React components
 - `src/content/` — content script (injected into active tab)
 - `src/background/` — service worker
 - `tests/unit/` — Vitest unit tests
