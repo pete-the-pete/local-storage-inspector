@@ -10,6 +10,7 @@ import { KeyList } from "./KeyList";
 import { ValueEditor } from "./ValueEditor";
 import { ImportExport } from "./ImportExport";
 import { ChangeLog } from "./ChangeLog";
+import { ResizeHandle } from "./ResizeHandle";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
@@ -26,6 +27,24 @@ export function App() {
   const [changes, setChanges] = useState<StorageChangeEvent[]>([]);
   const [truncatedCount, setTruncatedCount] = useState(0);
   const recordingRef = useRef(true);
+  const [keysPanelWidth, setKeysPanelWidth] = useState(180);
+  const [keysPanelCollapsed, setKeysPanelCollapsed] = useState(false);
+  const savedKeysPanelWidth = useRef(180);
+
+  const handleKeysResize = useCallback((delta: number) => {
+    setKeysPanelWidth((prev) => Math.min(300, Math.max(80, prev + delta)));
+  }, []);
+
+  const handleKeysCollapseToggle = useCallback(() => {
+    setKeysPanelCollapsed((prev) => {
+      if (prev) {
+        setKeysPanelWidth(savedKeysPanelWidth.current);
+      } else {
+        savedKeysPanelWidth.current = keysPanelWidth;
+      }
+      return !prev;
+    });
+  }, [keysPanelWidth]);
 
   const MAX_CHANGES = 100;
 
@@ -188,15 +207,26 @@ export function App() {
         {loadState === "error" && <div className={styles.error}>{errorMessage}</div>}
         {loadState === "ready" && (
           <>
-            <KeyList
-              entries={filteredEntries}
-              selectedKey={selectedKey}
-              onSelectKey={(key) => { setSelectedKey(key); setAddingNew(false); }}
-              onAddNew={() => {
-                setSelectedKey(null);
-                setAddingNew(true);
-                setNewKeyName("");
-              }}
+            <div
+              className={`${styles.keyListWrapper} ${keysPanelCollapsed ? styles.keyListCollapsed : ""}`}
+              style={keysPanelCollapsed ? undefined : { width: keysPanelWidth }}
+            >
+              <KeyList
+                entries={filteredEntries}
+                selectedKey={selectedKey}
+                onSelectKey={(key) => { setSelectedKey(key); setAddingNew(false); }}
+                onAddNew={() => {
+                  setSelectedKey(null);
+                  setAddingNew(true);
+                  setNewKeyName("");
+                }}
+              />
+            </div>
+            <ResizeHandle
+              direction="horizontal"
+              onResize={handleKeysResize}
+              collapsed={keysPanelCollapsed}
+              onToggleCollapse={handleKeysCollapseToggle}
             />
             {selectedEntry ? (
               <ValueEditor

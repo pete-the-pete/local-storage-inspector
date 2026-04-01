@@ -66,3 +66,14 @@
   justify-content: center;
   color: #999;
 }
+
+.keyListWrapper {
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: width 0.15s ease;
+}
+
+.keyListCollapsed {
+  width: 0 !important;
+  overflow: hidden;
+}
