@@ -35,7 +35,6 @@ function queueChange(event: StorageChangeEvent): void {
 // Listen for change events from the MAIN world interceptor
 window.addEventListener("message", (event) => {
   if (event.data?._lsi !== "interceptor") return;
-  if (event.data.type === "EXTENSION_FLAG_SET") return;
 
   const change: StorageChangeEvent = {
     storageType: event.data.storageType,

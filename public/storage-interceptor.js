@@ -1,5 +1,5 @@
 // MAIN world script — monkey-patches Storage.prototype to capture mutations.
-// Injected via <script> tag by the monitor content script.
+// Declared in manifest.json (world: "MAIN") to avoid ad blocker / CSP blocking.
 // Communicates with the ISOLATED world monitor via window.postMessage.
 
 (function () {
