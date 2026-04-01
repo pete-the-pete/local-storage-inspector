@@ -46,6 +46,14 @@ export function App() {
     });
   }, [keysPanelWidth]);
 
+  const [changeLogHeight, setChangeLogHeight] = useState(200);
+
+  const handleChangeLogResize = useCallback((delta: number) => {
+    setChangeLogHeight((prev) =>
+      Math.min(window.innerHeight * 0.6, Math.max(60, prev - delta)),
+    );
+  }, []);
+
   const MAX_CHANGES = 100;
 
   const addChanges = useCallback((newChanges: StorageChangeEvent[]) => {
@@ -276,13 +284,19 @@ export function App() {
       {loadState === "ready" && (
         <ImportExport entries={entries} onImport={handleImport} />
       )}
-      <ChangeLog
-        changes={changes}
-        recording={recording}
-        truncatedCount={truncatedCount}
-        onToggleRecording={handleToggleRecording}
-        onClear={handleClearChanges}
+      <ResizeHandle
+        direction="vertical"
+        onResize={handleChangeLogResize}
       />
+      <div style={{ height: changeLogHeight, flexShrink: 0 }}>
+        <ChangeLog
+          changes={changes}
+          recording={recording}
+          truncatedCount={truncatedCount}
+          onToggleRecording={handleToggleRecording}
+          onClear={handleClearChanges}
+        />
+      </div>
     </div>
   );
 }
