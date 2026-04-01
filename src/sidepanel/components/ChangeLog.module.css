@@ -141,3 +141,51 @@
   text-align: center;
   font-style: italic;
 }
+
+.changeSummary {
+  font-size: 11px;
+  color: #888;
+  margin-top: 2px;
+  font-family: monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.diffToolbar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.diffModeButton,
+.diffModeActive {
+  padding: 1px 6px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 10px;
+}
+
+.diffModeActive {
+  background: #e0e0e0;
+  font-weight: 600;
+}
+
+.diffBlock {
+  font-family: monospace;
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+}
+
+.diffRemoved {
+  background: #fce4ec;
+}
+
+.diffAdded {
+  background: #e3f2fd;
+}
+

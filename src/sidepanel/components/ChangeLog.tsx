@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { StorageChangeEvent } from "@/shared/types";
+import { jsonDiff, formatChangeSummary, diffLines } from "@/lib/diff";
 import styles from "./ChangeLog.module.css";
 
 const MAX_ENTRIES = 100;
@@ -30,15 +31,111 @@ function formatValue(value: string | null): string {
   }
 }
 
-function ChangeEntry({ change }: { change: StorageChangeEvent }) {
-  const [expanded, setExpanded] = useState(false);
-
-  const sourceClass = change.source === "extension"
-    ? `${styles.entrySource} ${styles.entrySourceExtension}`
-    : styles.entrySource;
+function InlineDiff({
+  oldValue,
+  newValue,
+}: {
+  oldValue: string | null;
+  newValue: string | null;
+}) {
+  const oldText = formatValue(oldValue);
+  const newText = formatValue(newValue);
+  const lines = diffLines(oldText, newText);
 
   return (
-    <div className={styles.entry} onClick={() => setExpanded(!expanded)} data-testid="change-entry">
+    <>
+      {oldValue !== null && (
+        <>
+          <div className={styles.detailLabel}>Old</div>
+          <pre className={styles.diffBlock}>
+            {lines
+              .filter((l) => l.type !== "added")
+              .map((line, i) => (
+                <div
+                  key={`old-${i}`}
+                  className={
+                    line.type === "removed" ? styles.diffRemoved : undefined
+                  }
+                >
+                  {line.text}
+                </div>
+              ))}
+          </pre>
+        </>
+      )}
+      <div className={styles.detailLabel}>New</div>
+      <pre className={styles.diffBlock}>
+        {lines
+          .filter((l) => l.type !== "removed")
+          .map((line, i) => (
+            <div
+              key={`new-${i}`}
+              className={
+                line.type === "added" ? styles.diffAdded : undefined
+              }
+            >
+              {line.text}
+            </div>
+          ))}
+      </pre>
+    </>
+  );
+}
+
+function UnifiedDiff({
+  oldValue,
+  newValue,
+}: {
+  oldValue: string | null;
+  newValue: string | null;
+}) {
+  const oldText = formatValue(oldValue);
+  const newText = formatValue(newValue);
+  const lines = diffLines(oldText, newText);
+
+  return (
+    <pre className={styles.diffBlock}>
+      {lines.map((line, i) => {
+        const prefix =
+          line.type === "added" ? "+" : line.type === "removed" ? "-" : " ";
+        const className =
+          line.type === "added"
+            ? styles.diffAdded
+            : line.type === "removed"
+              ? styles.diffRemoved
+              : undefined;
+        return (
+          <div key={i} className={className}>
+            {prefix} {line.text}
+          </div>
+        );
+      })}
+    </pre>
+  );
+}
+
+function ChangeEntry({ change }: { change: StorageChangeEvent }) {
+  const [expanded, setExpanded] = useState(false);
+  const [diffMode, setDiffMode] = useState<"inline" | "unified">("inline");
+
+  const fieldChanges =
+    change.operation !== "clear"
+      ? jsonDiff(change.oldValue, change.newValue)
+      : [];
+  const summary =
+    change.operation === "clear" ? "" : formatChangeSummary(fieldChanges);
+
+  const sourceClass =
+    change.source === "extension"
+      ? `${styles.entrySource} ${styles.entrySourceExtension}`
+      : styles.entrySource;
+
+  return (
+    <div
+      className={styles.entry}
+      onClick={() => setExpanded(!expanded)}
+      data-testid="change-entry"
+    >
       <div className={styles.entryHeader}>
         <span className={styles.entryKey} title={change.key ?? undefined}>
           {change.key ?? "(all)"}
@@ -53,16 +150,51 @@ function ChangeEntry({ change }: { change: StorageChangeEvent }) {
           {formatTimestamp(change.timestamp)}
         </span>
       </div>
+      {summary && (
+        <div className={styles.changeSummary} data-testid="change-summary">
+          {summary}
+        </div>
+      )}
       {expanded && change.operation !== "clear" && (
         <div className={styles.entryDetail}>
-          {change.oldValue !== null && (
-            <>
-              <div className={styles.detailLabel}>Old</div>
-              <div>{formatValue(change.oldValue)}</div>
-            </>
+          <div className={styles.diffToolbar}>
+            <button
+              className={
+                diffMode === "inline"
+                  ? styles.diffModeActive
+                  : styles.diffModeButton
+              }
+              onClick={(e) => {
+                e.stopPropagation();
+                setDiffMode("inline");
+              }}
+              data-testid="diff-mode-inline"
+            >
+              Inline
+            </button>
+            <button
+              className={
+                diffMode === "unified"
+                  ? styles.diffModeActive
+                  : styles.diffModeButton
+              }
+              onClick={(e) => {
+                e.stopPropagation();
+                setDiffMode("unified");
+              }}
+              data-testid="diff-mode-unified"
+            >
+              Unified
+            </button>
+          </div>
+          {diffMode === "inline" ? (
+            <InlineDiff oldValue={change.oldValue} newValue={change.newValue} />
+          ) : (
+            <UnifiedDiff
+              oldValue={change.oldValue}
+              newValue={change.newValue}
+            />
           )}
-          <div className={styles.detailLabel}>New</div>
-          <div>{formatValue(change.newValue)}</div>
         </div>
       )}
     </div>
