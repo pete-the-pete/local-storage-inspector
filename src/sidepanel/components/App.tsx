@@ -157,9 +157,10 @@ export function App() {
     }
   }, []);
 
-  if (typeof window !== "undefined") {
+  useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
-  }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   const filteredEntries = filterEntries(entries, searchQuery);
 
