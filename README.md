@@ -16,8 +16,6 @@
 
 ---
 
-![Local Storage Inspector screenshot](docs/screenshot.png)
-
 ## Features
 
 - **Browse storage** -- View all localStorage and sessionStorage keys in a searchable side panel
