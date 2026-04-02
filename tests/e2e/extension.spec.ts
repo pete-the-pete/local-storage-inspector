@@ -579,3 +579,45 @@ test.describe("Change Log Diff", () => {
     await sidePanelPage.close();
   });
 });
+
+test.describe("Resizable Panels", () => {
+  test("keys panel collapse toggle hides and shows the key list", async ({
+    page,
+    openSidePanel,
+  }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    // Keys should be visible initially
+    await expect(sidePanelPage.locator("text=basic-test")).toBeVisible();
+
+    // Click collapse toggle
+    await sidePanelPage.getByTestId("collapse-toggle").click();
+
+    // Collapsed handle should be visible
+    await expect(sidePanelPage.getByTestId("resize-handle-collapsed")).toBeVisible();
+
+    // Click to expand
+    await sidePanelPage.getByTestId("resize-handle-collapsed").click();
+
+    // Keys should be visible again
+    await expect(sidePanelPage.locator("text=basic-test")).toBeVisible();
+
+    await sidePanelPage.close();
+  });
+
+  test("horizontal resize handle is visible", async ({ page, openSidePanel }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    await expect(sidePanelPage.getByTestId("resize-handle-horizontal")).toBeVisible();
+
+    await sidePanelPage.close();
+  });
+
+  test("vertical resize handle is visible", async ({ page, openSidePanel }) => {
+    const sidePanelPage = await openSidePanel(page);
+
+    await expect(sidePanelPage.getByTestId("resize-handle-vertical")).toBeVisible();
+
+    await sidePanelPage.close();
+  });
+});
