@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800">
+  <defs>
+    <linearGradient id="bg3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F0F4FF" />
+      <stop offset="100%" stop-color="#E8EEFF" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1280" height="800" fill="url(#bg3)" />
+
+  <!-- Change log panel -->
+  <g transform="translate(240, 40)">
+    <rect width="800" height="720" rx="12" fill="#FFFFFF" filter="drop-shadow(0 4px 24px rgba(0,0,0,0.12))" />
+
+    <!-- Recording toolbar -->
+    <rect width="800" height="40" rx="12" fill="#F8F8F8" />
+    <rect y="28" width="800" height="12" fill="#F8F8F8" />
+    <line x1="0" y1="40" x2="800" y2="40" stroke="#E0E0E0" stroke-width="1" />
+
+    <circle cx="24" cy="20" r="5" fill="#D32F2F" />
+    <text x="36" y="24" font-family="system-ui, sans-serif" font-size="12" font-weight="500" fill="#333">Recording</text>
+
+    <text x="680" y="24" font-family="system-ui, sans-serif" font-size="12" fill="#999">8 changes</text>
+    <rect x="740" y="8" width="44" height="22" rx="3" fill="#FFF" stroke="#CCC" stroke-width="1" />
+    <text x="762" y="23" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#333">Clear</text>
+
+    <!-- Change entries -->
+    <g font-family="system-ui, sans-serif">
+      <!-- Entry 1 - expanded -->
+      <rect x="0" y="40" width="800" height="32" fill="#FAFAFA" />
+      <text x="16" y="60" font-size="12" font-weight="600" fill="#333">user-settings</text>
+      <text x="130" y="60" font-size="11" fill="#666">setItem</text>
+      <rect x="178" y="50" width="32" height="16" rx="3" fill="#E8E8E8" />
+      <text x="194" y="61" text-anchor="middle" font-size="10" fill="#555">page</text>
+      <text x="720" y="60" font-size="11" fill="#999">14:32:01.158</text>
+      <!-- Summary -->
+      <text x="16" y="84" font-size="11" fill="#888" font-family="'SF Mono', monospace">~ theme, + sidebar.pinned</text>
+
+      <!-- Entry 2 -->
+      <rect x="0" y="96" width="800" height="32" fill="#FFFFFF" />
+      <text x="16" y="116" font-size="12" font-weight="600" fill="#333">auth-token</text>
+      <text x="110" y="116" font-size="11" fill="#666">setItem</text>
+      <rect x="158" y="106" width="58" height="16" rx="3" fill="#E3F2FD" />
+      <text x="187" y="117" text-anchor="middle" font-size="10" fill="#1565C0">extension</text>
+      <text x="720" y="116" font-size="11" fill="#999">14:31:58.402</text>
+      <text x="16" y="136" font-size="11" fill="#888" font-family="'SF Mono', monospace">value changed</text>
+
+      <!-- Entry 3 -->
+      <rect x="0" y="148" width="800" height="32" fill="#FAFAFA" />
+      <text x="16" y="168" font-size="12" font-weight="600" fill="#333">cart-items</text>
+      <text x="104" y="168" font-size="11" fill="#666">setItem</text>
+      <rect x="152" y="158" width="32" height="16" rx="3" fill="#E8E8E8" />
+      <text x="168" y="169" text-anchor="middle" font-size="10" fill="#555">page</text>
+      <text x="720" y="168" font-size="11" fill="#999">14:31:55.891</text>
+      <text x="16" y="188" font-size="11" fill="#888" font-family="'SF Mono', monospace">~ items.2.quantity, + items.3</text>
+
+      <!-- Entry 4 -->
+      <rect x="0" y="200" width="800" height="32" fill="#FFFFFF" />
+      <text x="16" y="220" font-size="12" font-weight="600" fill="#333">theme-preference</text>
+      <text x="140" y="220" font-size="11" fill="#666">setItem</text>
+      <rect x="188" y="210" width="32" height="16" rx="3" fill="#E8E8E8" />
+      <text x="204" y="221" text-anchor="middle" font-size="10" fill="#555">page</text>
+      <text x="720" y="220" font-size="11" fill="#999">14:31:52.103</text>
+      <text x="16" y="240" font-size="11" fill="#888" font-family="'SF Mono', monospace">value changed</text>
+
+      <!-- Entry 5 -->
+      <rect x="0" y="252" width="800" height="32" fill="#FAFAFA" />
+      <text x="16" y="272" font-size="12" font-weight="600" fill="#333">notifications</text>
+      <text x="120" y="272" font-size="11" fill="#666">setItem</text>
+      <rect x="168" y="262" width="32" height="16" rx="3" fill="#E8E8E8" />
+      <text x="184" y="273" text-anchor="middle" font-size="10" fill="#555">page</text>
+      <text x="720" y="272" font-size="11" fill="#999">14:31:48.770</text>
+      <text x="16" y="292" font-size="11" fill="#888" font-family="'SF Mono', monospace">~ email, - sms</text>
+
+      <!-- Entry 6 -->
+      <rect x="0" y="304" width="800" height="32" fill="#FFFFFF" />
+      <text x="16" y="324" font-size="12" font-weight="600" fill="#333">session-id</text>
+      <text x="108" y="324" font-size="11" fill="#666">removeItem</text>
+      <rect x="174" y="314" width="32" height="16" rx="3" fill="#E8E8E8" />
+      <text x="190" y="325" text-anchor="middle" font-size="10" fill="#555">page</text>
+      <text x="720" y="324" font-size="11" fill="#999">14:31:45.221</text>
+      <text x="16" y="344" font-size="11" fill="#888" font-family="'SF Mono', monospace">(deleted)</text>
+
+      <!-- Entry 7 -->
+      <rect x="0" y="356" width="800" height="32" fill="#FAFAFA" />
+      <text x="16" y="376" font-size="12" font-weight="600" fill="#333">api-cache</text>
+      <text x="104" y="376" font-size="11" fill="#666">setItem</text>
+      <rect x="152" y="366" width="32" height="16" rx="3" fill="#E8E8E8" />
+      <text x="168" y="377" text-anchor="middle" font-size="10" fill="#555">page</text>
+      <text x="720" y="376" font-size="11" fill="#999">14:31:42.005</text>
+      <text x="16" y="396" font-size="11" fill="#888" font-family="'SF Mono', monospace">(new)</text>
+
+      <!-- Entry 8 -->
+      <rect x="0" y="408" width="800" height="32" fill="#FFFFFF" />
+      <text x="16" y="428" font-size="12" font-weight="600" fill="#333">feature-flags</text>
+      <text x="120" y="428" font-size="11" fill="#666">setItem</text>
+      <rect x="168" y="418" width="58" height="16" rx="3" fill="#E3F2FD" />
+      <text x="197" y="429" text-anchor="middle" font-size="10" fill="#1565C0">extension</text>
+      <text x="720" y="428" font-size="11" fill="#999">14:31:38.442</text>
+      <text x="16" y="448" font-size="11" fill="#888" font-family="'SF Mono', monospace">~ beta.enabled, + beta.rollout</text>
+    </g>
+  </g>
+
+  <!-- Feature callout -->
+  <g transform="translate(40, 200)">
+    <rect width="180" height="120" rx="8" fill="#1E3A5F" opacity="0.95" />
+    <text x="16" y="28" font-family="system-ui, sans-serif" font-size="15" font-weight="700" fill="#FFFFFF">Change Log</text>
+    <text x="16" y="50" font-family="system-ui, sans-serif" font-size="11.5" fill="#94A3B8">Real-time monitoring</text>
+    <text x="16" y="66" font-family="system-ui, sans-serif" font-size="11.5" fill="#94A3B8">Field-level diff summary</text>
+    <text x="16" y="82" font-family="system-ui, sans-serif" font-size="11.5" fill="#94A3B8">Page vs extension source</text>
+    <text x="16" y="98" font-family="system-ui, sans-serif" font-size="11.5" fill="#94A3B8">Millisecond timestamps</text>
+  </g>
+</svg>

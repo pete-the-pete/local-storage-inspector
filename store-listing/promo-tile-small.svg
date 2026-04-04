@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 280" width="440" height="280">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1E3A5F" />
+      <stop offset="100%" stop-color="#0F1F33" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="440" height="280" fill="url(#bg)" />
+
+  <!-- Subtle grid pattern -->
+  <g opacity="0.06" stroke="#38BDF8" stroke-width="0.5">
+    <line x1="0" y1="40" x2="440" y2="40" />
+    <line x1="0" y1="80" x2="440" y2="80" />
+    <line x1="0" y1="120" x2="440" y2="120" />
+    <line x1="0" y1="160" x2="440" y2="160" />
+    <line x1="0" y1="200" x2="440" y2="200" />
+    <line x1="0" y1="240" x2="440" y2="240" />
+    <line x1="80" y1="0" x2="80" y2="280" />
+    <line x1="160" y1="0" x2="160" y2="280" />
+    <line x1="240" y1="0" x2="240" y2="280" />
+    <line x1="320" y1="0" x2="320" y2="280" />
+    <line x1="400" y1="0" x2="400" y2="280" />
+  </g>
+
+  <!-- Icon (scaled version of icon.svg) -->
+  <g transform="translate(170, 50) scale(3.2)">
+    <!-- Square bracket left -->
+    <path d="M 8 3 H 4 V 29 H 8" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    <!-- Square bracket right -->
+    <path d="M 24 3 H 28 V 29 H 24" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+    <!-- Magnifying glass -->
+    <circle cx="15" cy="14" r="7" stroke="#7DD3FC" stroke-width="2.5" fill="none" />
+    <line x1="19.9" y1="19.2" x2="24.5" y2="24.5" stroke="#7DD3FC" stroke-width="3" stroke-linecap="round" />
+    <!-- Data lines inside lens -->
+    <line x1="11" y1="11.5" x2="19" y2="11.5" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round" />
+    <line x1="11" y1="14.5" x2="17" y2="14.5" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round" />
+    <line x1="11" y1="17.5" x2="18" y2="17.5" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+
+  <!-- Title -->
+  <text x="220" y="200" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="22" font-weight="700" fill="#FFFFFF" letter-spacing="0.5">
+    Local Storage Inspector
+  </text>
+
+  <!-- Tagline -->
+  <text x="220" y="228" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="13" fill="#94A3B8" letter-spacing="0.3">
+    View, edit, and monitor browser storage
+  </text>
+</svg>
