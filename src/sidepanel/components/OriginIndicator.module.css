@@ -1,0 +1,51 @@
+.indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #333;
+  background: #f6f6f6;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.origin {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.granted {
+  color: #0a7a0a;
+  flex-shrink: 0;
+}
+
+.button {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  color: #333;
+}
+
+.button:hover {
+  background: #eaeaea;
+  border-color: #999;
+}
+
+.unsupported {
+  color: #888;
+}

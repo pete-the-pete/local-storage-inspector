@@ -580,6 +580,41 @@ test.describe("Change Log Diff", () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// On-demand Injection
+// ---------------------------------------------------------------------------
+
+test.describe("On-demand injection", () => {
+  test("sidepanel injection installs interceptor (MAIN) + monitor (ISOLATED) on the active tab", async ({ page, openSidePanel }) => {
+    // The shared fixture's `openSidePanel` waits for `text=basic-test` to
+    // confirm loadEntries completed. basic-test is already seeded by beforeEach
+    // — no need to re-seed here.
+    const sidePanel = await openSidePanel(page);
+
+    // MAIN world: the interceptor stashes the original setItem under a
+    // well-known Symbol.for key when it patches Storage.prototype. Reading
+    // that from the page proves the MAIN injection landed.
+    const interceptorInstalled = await page.evaluate(() => {
+      const key = Symbol.for("lsi-original-setItem");
+      return typeof (window as unknown as Record<symbol, unknown>)[key] === "function";
+    });
+    expect(interceptorInstalled).toBe(true);
+
+    // ISOLATED world: we can't read its state directly, but we can verify
+    // its behavior. Mutate storage in the page; the interceptor posts a
+    // window message, the monitor batches it and relays via
+    // chrome.runtime.sendMessage, and the panel's change log should render
+    // a row.
+    await page.evaluate(() => {
+      localStorage.setItem("injection-e2e-test", "ok");
+    });
+    const entry = sidePanel.getByTestId("change-entry").first();
+    await expect(entry).toBeVisible({ timeout: 3000 });
+
+    await sidePanel.close();
+  });
+});
+
 test.describe("Resizable Panels", () => {
   test("keys panel collapse toggle hides and shows the key list", async ({
     page,
