@@ -143,6 +143,11 @@ export function App() {
         void refreshOriginState();
         return;
       }
+      if (injectResult.status === "error") {
+        setErrorMessage(`Failed to inject: ${injectResult.error}`);
+        setLoadState("error");
+        return;
+      }
 
       const results = await chrome.scripting.executeScript({
         target: { tabId },
@@ -264,11 +269,15 @@ export function App() {
     // any await before it breaks the gesture association.
     if (originState.kind !== "session") return;
     const origin = originState.origin;
-    requestOriginPermission(origin).then((granted) => {
-      if (granted) {
-        setOriginState({ kind: "persistent", origin });
-      }
-    });
+    requestOriginPermission(origin)
+      .then((granted) => {
+        if (granted) {
+          setOriginState({ kind: "persistent", origin });
+        }
+      })
+      .catch((e) => {
+        console.error("permission request failed", e);
+      });
   }, [originState]);
 
   const handleRevokeOrigin = useCallback(async () => {
