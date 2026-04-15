@@ -77,3 +77,9 @@
   width: 0 !important;
   overflow: hidden;
 }
+
+.originRow {
+  display: flex;
+  padding: 4px 8px 0 8px;
+  min-width: 0;
+}

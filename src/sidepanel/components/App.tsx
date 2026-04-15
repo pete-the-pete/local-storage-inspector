@@ -3,6 +3,14 @@ import type { StorageType, StorageEntry, StorageChangeEvent, StorageChangePortMe
 
 import { filterEntries } from "@/lib/filter";
 import { getActiveTabId, readStorage, writeStorage, removeFromStorage, importToStorage } from "@/lib/storage";
+import { injectIntoTab } from "@/lib/inject";
+import {
+  originToMatchPattern,
+  matchPatternToOrigin,
+  hasOriginPermission,
+  requestOriginPermission,
+  removeOriginPermission,
+} from "@/lib/host-permissions";
 import styles from "./App.module.css";
 import { StorageToggle } from "./StorageToggle";
 import { SearchBar } from "./SearchBar";
@@ -11,6 +19,7 @@ import { ValueEditor } from "./ValueEditor";
 import { ImportExport } from "./ImportExport";
 import { ChangeLog } from "./ChangeLog";
 import { ResizeHandle } from "./ResizeHandle";
+import { OriginIndicator, type OriginState } from "./OriginIndicator";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
@@ -26,6 +35,24 @@ export function App() {
   const [recording, setRecording] = useState(true);
   const [changes, setChanges] = useState<StorageChangeEvent[]>([]);
   const [truncatedCount, setTruncatedCount] = useState(0);
+  const [originState, setOriginState] = useState<OriginState>({ kind: "loading" });
+
+  const refreshOriginState = useCallback(async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const pattern = originToMatchPattern(tab?.url);
+    if (!pattern) {
+      setOriginState({ kind: "unsupported" });
+      return;
+    }
+    const origin = matchPatternToOrigin(pattern);
+    if (!origin) {
+      setOriginState({ kind: "unsupported" });
+      return;
+    }
+    const granted = await hasOriginPermission(origin);
+    setOriginState(granted ? { kind: "persistent", origin } : { kind: "session", origin });
+  }, []);
+
   const recordingRef = useRef(true);
   const [keysPanelWidth, setKeysPanelWidth] = useState(180);
   const [keysPanelCollapsed, setKeysPanelCollapsed] = useState(false);
@@ -106,6 +133,17 @@ export function App() {
         return;
       }
 
+      // Re-inject on every load. Idempotent at the page level thanks to the
+      // guards in the interceptor and monitor, and safely handles the case
+      // where the user navigated the tab while the panel was open.
+      const injectResult = await injectIntoTab(tabId);
+      if (injectResult.status === "unsupported") {
+        setErrorMessage("Storage inspection isn't available on this page.");
+        setLoadState("error");
+        void refreshOriginState();
+        return;
+      }
+
       const results = await chrome.scripting.executeScript({
         target: { tabId },
         func: readStorage,
@@ -115,11 +153,50 @@ export function App() {
       const tabEntries = results[0]?.result ?? [];
       setEntries(tabEntries);
       setLoadState("ready");
+      void refreshOriginState();
     } catch (e) {
       setErrorMessage(e instanceof Error ? e.message : "Failed to load storage");
       setLoadState("error");
     }
-  }, []);
+  }, [refreshOriginState]);
+
+  useEffect(() => {
+    const handleAdded = () => { void refreshOriginState(); };
+    const handleRemoved = () => { void refreshOriginState(); };
+    chrome.permissions.onAdded.addListener(handleAdded);
+    chrome.permissions.onRemoved.addListener(handleRemoved);
+    void refreshOriginState();
+    return () => {
+      chrome.permissions.onAdded.removeListener(handleAdded);
+      chrome.permissions.onRemoved.removeListener(handleRemoved);
+    };
+  }, [refreshOriginState]);
+
+  useEffect(() => {
+    const handleTabUpdated = (
+      tabId: number,
+      changeInfo: chrome.tabs.OnUpdatedInfo,
+    ) => {
+      // Only URL changes matter here. `onUpdated` also fires for title,
+      // favicon, and loading-status changes — those don't affect the
+      // origin or the storage contents, so filtering on changeInfo.url
+      // avoids spamming reads.
+      if (!changeInfo.url) return;
+      void (async () => {
+        const [activeTab] = await chrome.tabs.query({
+          active: true,
+          currentWindow: true,
+        });
+        // Ignore navigations in background tabs — the panel only renders
+        // the active tab's storage.
+        if (activeTab?.id !== tabId) return;
+        await refreshOriginState();
+        await loadEntries(storageType);
+      })();
+    };
+    chrome.tabs.onUpdated.addListener(handleTabUpdated);
+    return () => chrome.tabs.onUpdated.removeListener(handleTabUpdated);
+  }, [refreshOriginState, loadEntries, storageType]);
 
   const handleStorageTypeChange = useCallback(
     (type: StorageType) => {
@@ -181,6 +258,33 @@ export function App() {
     [storageType, loadEntries],
   );
 
+  const handleAllowOrigin = useCallback(() => {
+    // IMPORTANT: do NOT await anything before requestOriginPermission —
+    // Chrome requires this call to be inside the user-gesture handler, and
+    // any await before it breaks the gesture association.
+    if (originState.kind !== "session") return;
+    const origin = originState.origin;
+    requestOriginPermission(origin).then((granted) => {
+      if (granted) {
+        setOriginState({ kind: "persistent", origin });
+      }
+    });
+  }, [originState]);
+
+  const handleRevokeOrigin = useCallback(async () => {
+    // Existing change log entries stay visible after revoke; only new
+    // events stop flowing. The service worker's permissions.onRemoved
+    // handler unregisters the persistent content script, and any
+    // ephemeral monitor injected via executeScript dies on the next
+    // navigation since activeTab is also gone.
+    if (originState.kind !== "persistent") return;
+    const origin = originState.origin;
+    const removed = await removeOriginPermission(origin);
+    if (removed) {
+      setOriginState({ kind: "session", origin });
+    }
+  }, [originState]);
+
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") {
       setSelectedKey(null);
@@ -209,6 +313,13 @@ export function App() {
       <div className={styles.header}>
         <StorageToggle storageType={storageType} onChange={handleStorageTypeChange} />
         <SearchBar query={searchQuery} onChange={setSearchQuery} />
+      </div>
+      <div className={styles.originRow}>
+        <OriginIndicator
+          state={originState}
+          onAllow={handleAllowOrigin}
+          onRevoke={handleRevokeOrigin}
+        />
       </div>
       <div className={styles.body}>
         {loadState === "loading" && <div className={styles.loading}>Loading...</div>}
