@@ -197,6 +197,7 @@ export function App() {
       tabId: number,
       changeInfo: chrome.tabs.OnUpdatedInfo,
     ) => {
+      // onUpdated fires for title, favicon, and status changes too — only URL changes affect storage.
       if (!changeInfo.url) return;
       if (loadedTabId !== tabId) return;
       void (async () => {

@@ -15,7 +15,7 @@ export function StaleTabBanner({ onInspect, onDismiss }: Props) {
       <button type="button" className={styles.inspectButton} onClick={onInspect}>
         Inspect this tab
       </button>
-      <button type="button" className={styles.closeButton} onClick={onDismiss}>
+      <button type="button" className={styles.closeButton} onClick={onDismiss} aria-label="Dismiss">
         &times;
       </button>
     </div>
