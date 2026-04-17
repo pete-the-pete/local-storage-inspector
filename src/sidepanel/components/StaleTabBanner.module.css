@@ -1,0 +1,56 @@
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #6b5900;
+  background: #fef9e7;
+  border: 1px solid #f0d860;
+  border-radius: 4px;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.message {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inspectButton {
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid #c9a800;
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  color: #6b5900;
+}
+
+.inspectButton:hover {
+  background: #fdf0b2;
+  border-color: #a68c00;
+}
+
+.closeButton {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  padding: 0 4px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #6b5900;
+  line-height: 1;
+}
+
+.closeButton:hover {
+  color: #3d3300;
+}

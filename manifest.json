@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Local Storage Inspector",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "View and edit localStorage and sessionStorage with a proper JSON editor",
   "permissions": ["activeTab", "scripting", "sidePanel"],
   "optional_host_permissions": ["<all_urls>"],

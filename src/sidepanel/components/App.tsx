@@ -20,6 +20,7 @@ import { ImportExport } from "./ImportExport";
 import { ChangeLog } from "./ChangeLog";
 import { ResizeHandle } from "./ResizeHandle";
 import { OriginIndicator, type OriginState } from "./OriginIndicator";
+import { StaleTabBanner } from "./StaleTabBanner";
 
 type LoadState = "idle" | "loading" | "ready" | "error";
 
@@ -36,6 +37,9 @@ export function App() {
   const [changes, setChanges] = useState<StorageChangeEvent[]>([]);
   const [truncatedCount, setTruncatedCount] = useState(0);
   const [originState, setOriginState] = useState<OriginState>({ kind: "loading" });
+  const [loadedTabId, setLoadedTabId] = useState<number | null>(null);
+  const [activeTabId, setActiveTabId] = useState<number | null>(null);
+  const [bannerDismissedForTabId, setBannerDismissedForTabId] = useState<number | null>(null);
 
   const refreshOriginState = useCallback(async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -158,6 +162,8 @@ export function App() {
       const tabEntries = results[0]?.result ?? [];
       setEntries(tabEntries);
       setLoadState("ready");
+      setLoadedTabId(tabId);
+      setBannerDismissedForTabId(null);
       void refreshOriginState();
     } catch (e) {
       setErrorMessage(e instanceof Error ? e.message : "Failed to load storage");
@@ -178,30 +184,30 @@ export function App() {
   }, [refreshOriginState]);
 
   useEffect(() => {
+    const handleActivated = (info: chrome.tabs.OnActivatedInfo) => {
+      setActiveTabId(info.tabId);
+    };
+    chrome.tabs.onActivated.addListener(handleActivated);
+    void getActiveTabId().then((id) => { if (id != null) setActiveTabId(id); });
+    return () => chrome.tabs.onActivated.removeListener(handleActivated);
+  }, []);
+
+  useEffect(() => {
     const handleTabUpdated = (
       tabId: number,
       changeInfo: chrome.tabs.OnUpdatedInfo,
     ) => {
-      // Only URL changes matter here. `onUpdated` also fires for title,
-      // favicon, and loading-status changes — those don't affect the
-      // origin or the storage contents, so filtering on changeInfo.url
-      // avoids spamming reads.
+      // onUpdated fires for title, favicon, and status changes too — only URL changes affect storage.
       if (!changeInfo.url) return;
+      if (loadedTabId !== tabId) return;
       void (async () => {
-        const [activeTab] = await chrome.tabs.query({
-          active: true,
-          currentWindow: true,
-        });
-        // Ignore navigations in background tabs — the panel only renders
-        // the active tab's storage.
-        if (activeTab?.id !== tabId) return;
         await refreshOriginState();
         await loadEntries(storageType);
       })();
     };
     chrome.tabs.onUpdated.addListener(handleTabUpdated);
     return () => chrome.tabs.onUpdated.removeListener(handleTabUpdated);
-  }, [refreshOriginState, loadEntries, storageType]);
+  }, [refreshOriginState, loadEntries, storageType, loadedTabId]);
 
   const handleStorageTypeChange = useCallback(
     (type: StorageType) => {
@@ -312,6 +318,12 @@ export function App() {
     ? entries.find((e) => e.key === selectedKey) ?? null
     : null;
 
+  const showStaleTabBanner =
+    loadedTabId != null &&
+    activeTabId != null &&
+    activeTabId !== loadedTabId &&
+    activeTabId !== bannerDismissedForTabId;
+
   // Load on first render
   if (loadState === "idle") {
     loadEntries(storageType);
@@ -323,6 +335,14 @@ export function App() {
         <StorageToggle storageType={storageType} onChange={handleStorageTypeChange} />
         <SearchBar query={searchQuery} onChange={setSearchQuery} />
       </div>
+      {showStaleTabBanner && (
+        <div className={styles.originRow}>
+          <StaleTabBanner
+            onInspect={() => loadEntries(storageType)}
+            onDismiss={() => setBannerDismissedForTabId(activeTabId)}
+          />
+        </div>
+      )}
       <div className={styles.originRow}>
         <OriginIndicator
           state={originState}
