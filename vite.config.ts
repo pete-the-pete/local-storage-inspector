@@ -19,6 +19,6 @@ export default defineConfig({
   test: {
     globals: false,
     environment: "node",
-    exclude: ["tests/e2e/**", "node_modules/**"],
+    exclude: ["tests/e2e/**", "listing/**", "node_modules/**"],
   },
 });
